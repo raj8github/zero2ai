@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>From Zero to AI — An Interactive Journey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- Chapter Navigation -->
+<nav class="chapter-nav" id="chapterNav">
+  <div class="nav-inner">
+    <a href="#hero" class="nav-logo">0→AI</a>
+    <div class="nav-chapters">
+      <a href="#ch1" class="nav-ch" data-ch="1"><span class="nav-num">01</span> Functions</a>
+      <a href="#ch2" class="nav-ch" data-ch="2"><span class="nav-num">02</span> Derivatives</a>
+      <a href="#ch3" class="nav-ch" data-ch="3"><span class="nav-num">03</span> Gradient Descent</a>
+      <a href="#ch4" class="nav-ch" data-ch="4"><span class="nav-num">04</span> AI & ML</a>
+      <a href="#ch5" class="nav-ch" data-ch="5"><span class="nav-num">05</span> Neural Networks</a>
+      <a href="#ch6" class="nav-ch" data-ch="6"><span class="nav-num">06</span> Activations</a>
+      <a href="#ch7" class="nav-ch" data-ch="7"><span class="nav-num">07</span> Backpropagation</a>
+      <a href="#ch8" class="nav-ch" data-ch="8"><span class="nav-num">08</span> Tokens</a>
+      <a href="#ch9" class="nav-ch" data-ch="9"><span class="nav-num">09</span> Attention</a>
+      <a href="#ch10" class="nav-ch" data-ch="10"><span class="nav-num">10</span> Transformers</a>
+      <a href="#ch11" class="nav-ch" data-ch="11"><span class="nav-num">11</span> Temperature</a>
+      <a href="#ch12" class="nav-ch" data-ch="12"><span class="nav-num">12</span> Claude</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero" id="hero">
+  <canvas id="heroCanvas"></canvas>
+  <div class="hero-content">
+    <div class="hero-badge"><span class="pulse-dot"></span>Interactive Visual Guide</div>
+    <h1 class="hero-title">
+      <span class="hero-line">From Zero</span>
+      <span class="hero-line hero-gradient">to AI</span>
+    </h1>
+    <p class="hero-sub">Understand how Claude, GPT, and Gemini actually work — from high school math to transformer architecture. No prerequisites. Every concept is interactive.</p>
+    <div class="hero-actions">
+      <a href="#ch1" class="btn-primary">Start the journey</a>
+      <a href="#ch3" class="btn-ghost">Skip to Gradient Descent</a>
+      <a href="https://raj8github.github.io/how-gpt-works/" target="_blank" class="btn-ghost">Skip to Real Code →</a>
+    </div>
+    <div class="hero-refs">
+      <span class="ref-tag">Inspired by</span>
+      <a href="https://raj8github.github.io/how-gpt-works/" target="_blank" class="ref-link">How GPT Works</a>
+      <a href="https://playground.tensorflow.org" target="_blank" class="ref-link">TensorFlow Playground</a>
+      <a href="https://poloclub.github.io/transformer-explainer/" target="_blank" class="ref-link">Transformer Explainer</a>
+      <a href="https://bbycroft.net/llm" target="_blank" class="ref-link">LLM Visualization</a>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll to begin</span>
+    <div class="scroll-arrow">↓</div>
+  </div>
+</section>
+
+<!-- ═══════════════ CH1: FUNCTIONS ═══════════════ -->
+<section class="chapter" id="ch1">
+  <div class="chapter-header">
+    <div class="ch-num">01</div>
+    <h2 class="ch-title">Functions</h2>
+    <p class="ch-subtitle">Everything in AI starts here. A function is a machine: input goes in, output comes out.</p>
+  </div>
+  <div class="split-layout">
+    <div class="viz-panel">
+      <canvas id="funcCanvas"></canvas>
+      <div class="viz-hint">Hover to explore the function</div>
+    </div>
+    <div class="explain-panel">
+      <h3>What you're seeing</h3>
+      <div class="explain-row"><div class="dot dot-teal"></div><p><strong>Hover</strong> the graph. Your mouse position = input <strong>x</strong>. The dot = output <strong>f(x)</strong>.</p></div>
+      <div class="explain-row"><div class="dot dot-amber"></div><p>Where the curve is <strong>steep</strong>, small input changes cause big output changes. Where it's flat, output barely moves.</p></div>
+      <div class="explain-row"><div class="dot dot-indigo"></div><p>The dashed crosshair tracks your position. The coordinates update in real-time below.</p></div>
+      <div class="live-readout" id="funcReadout">Move your mouse over the graph</div>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:1.5rem">
+    <div class="callout-title">🌍 Real World</div>
+    <p><span class="model-tag tag-claude">Claude</span> <span class="model-tag tag-gpt">GPT-4</span> <span class="model-tag tag-gemini">Gemini</span> are all massive functions: text goes in → text comes out. Training = finding the right function.</p>
+  </div>
+</section>
+
+<div class="bridge"><div class="bridge-arrow">↓</div><p>How <strong>fast</strong> is the output changing? That's what derivatives tell us — the foundation of how AI learns.</p></div>
+
+<!-- ═══════════════ CH2: DERIVATIVES ═══════════════ -->
+<section class="chapter" id="ch2">
+  <div class="chapter-header">
+    <div class="ch-num">02</div>
+    <h2 class="ch-title">Slopes & Derivatives</h2>
+    <p class="ch-subtitle">Nudge the input a tiny bit — how much does the output change? That ratio is the derivative.</p>
+  </div>
+  <div class="split-layout">
+    <div class="viz-panel">
+      <canvas id="slopeCanvas"></canvas>
+      <div class="viz-hint">Drag the yellow dot along the curve</div>
+    </div>
+    <div class="explain-panel">
+      <h3>What you're seeing</h3>
+      <div class="explain-row"><div class="dot dot-amber"></div><p><strong>Drag the yellow dot</strong> along the curve. The <strong class="text-rose">red line</strong> is the tangent — its angle IS the slope at that point.</p></div>
+      <div class="explain-row"><div class="dot dot-indigo"></div><p>For <code>f(x) = x²</code>, the derivative is <code>2x</code>. At x=3, slope=6 — the output changes 6× faster than the input.</p></div>
+      <div class="explain-row"><div class="dot dot-teal"></div><p>Where slope = 0, the function has a <strong>minimum or maximum</strong>. AI uses this to find optimal answers.</p></div>
+      <div class="live-readout" id="slopeReadout">Drag to see slope change</div>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:1.5rem">
+    <div class="callout-title">🌍 Why AI cares</div>
+    <p>The derivative tells <span class="model-tag tag-claude">Claude</span>: "adjusting this parameter will improve the answer by <em>exactly</em> this much." It's the GPS of optimization.</p>
+  </div>
+</section>
+
+<div class="bridge"><div class="bridge-arrow">↓</div><p>Derivatives tell us <strong>which direction to go</strong>. Now imagine a landscape of errors — walking downhill finds the best answer.</p></div>
+
+<!-- ═══════════════ CH3: GRADIENT DESCENT ═══════════════ -->
+<section class="chapter" id="ch3">
+  <div class="chapter-header">
+    <div class="ch-num">03</div>
+    <h2 class="ch-title">Gradient Descent</h2>
+    <p class="ch-subtitle">THE algorithm behind all AI training. Follow the slope downward to minimize error.</p>
+  </div>
+  <div class="split-layout">
+    <div class="viz-panel">
+      <canvas id="gdCanvas"></canvas>
+    </div>
+    <div class="explain-panel">
+      <h3>What you're seeing</h3>
+      <div class="explain-row"><div class="dot dot-amber"></div><p><strong class="text-amber">Yellow ball</strong> = the model's current parameters. Dark blue = low error (good). Red/orange = high error (bad).</p></div>
+      <div class="explain-row"><div class="dot dot-rose"></div><p><strong class="text-rose">Red arrow</strong> points <em>uphill</em> (gradient direction). The ball moves the <em>opposite</em> way — downhill toward lower error.</p></div>
+      <div class="explain-row"><div class="dot dot-white"></div><p><strong>White trail</strong> shows the path taken. Each white dot is one step. Watch it spiral into the valley.</p></div>
+      <div class="live-readout" id="gdReadout">Press Play or Step to begin</div>
+      <div class="control-group">
+        <div class="slider-row">
+          <label>Learning rate</label>
+          <input type="range" id="gdLR" min="2" max="80" value="5">
+          <span class="slider-val" id="gdLRVal">0.05</span>
+        </div>
+        <div class="slider-row">
+          <label>Momentum</label>
+          <input type="range" id="gdMom" min="0" max="95" value="10">
+          <span class="slider-val" id="gdMomVal">0.10</span>
+        </div>
+        <div class="slider-row">
+          <label>Steps</label>
+          <input type="range" id="gdSteps" min="1" max="20" value="1">
+          <span class="slider-val" id="gdStepsVal">1</span>
+        </div>
+        <div class="btn-row">
+          <button class="btn-ctrl btn-play" id="gdPlay">▶ Play</button>
+          <button class="btn-ctrl" id="gdStep">⏭ Step</button>
+          <button class="btn-ctrl" id="gdReset">⟳ Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="callout-row">
+    <div class="callout">
+      <div class="callout-title">💡 Try this</div>
+      <p>Set learning rate to <strong>0.60</strong> — watch it overshoot! Set momentum to <strong>0.90</strong> — it builds up speed like a heavy ball. Set <strong>Steps</strong> to 10 for batch updates.</p>
+    </div>
+    <div class="callout">
+      <div class="callout-title">🌍 Scale</div>
+      <p>Training <span class="model-tag tag-gpt">GPT-4</span> does gradient descent on <strong>trillions of parameters</strong> across thousands of GPUs. The same algorithm you see here — just at unimaginable scale.</p>
+    </div>
+  </div>
+</section>
+
+<div class="bridge"><div class="bridge-arrow">↓</div><p>You understand the math! Now: <strong>what is AI actually doing</strong> with all this?</p></div>
+
+<!-- ═══════════════ CH4: AI & ML ═══════════════ -->
+<section class="chapter" id="ch4">
+  <div class="chapter-header">
+    <div class="ch-num">04</div>
+    <h2 class="ch-title">AI, ML & Deep Learning</h2>
+    <p class="ch-subtitle">The hierarchy from broad intelligence to the specific models you use every day.</p>
+  </div>
+
+  <!-- Hierarchy Diagram -->
+  <div class="hierarchy-container">
+    <div class="hierarchy-ring ring-ai">
+      <span class="ring-label">AI — Artificial Intelligence</span>
+      <span class="ring-desc">Any system that exhibits intelligent behavior</span>
+      <div class="hierarchy-ring ring-ml">
+        <span class="ring-label">ML — Machine Learning</span>
+        <span class="ring-desc">Systems that learn from data</span>
+        <div class="hierarchy-ring ring-dl">
+          <span class="ring-label">DL — Deep Learning</span>
+          <span class="ring-desc">Multi-layer neural networks</span>
+          <div class="hierarchy-ring ring-llm">
+            <span class="ring-label">LLMs</span>
+            <span class="ring-desc">Claude · GPT · Gemini</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Learning Types -->
+  <h3 class="section-subhead">Three ways machines learn</h3>
+  <div class="learning-types">
+    <div class="lt-card">
+      <div class="lt-icon">🎓</div>
+      <h4>Supervised Learning</h4>
+      <div class="lt-visual">
+        <div class="lt-flow">
+          <span class="lt-item">🖼️ image</span>
+          <span class="lt-arrow">→</span>
+          <span class="lt-item lt-model">model</span>
+          <span class="lt-arrow">→</span>
+          <span class="lt-item lt-label">"cat"</span>
+        </div>
+      </div>
+      <p>Show examples with correct answers. The model learns to map inputs to outputs. Like studying with flashcards.</p>
+      <div class="lt-tags"><span class="model-tag tag-claude">Claude pre-training</span> <span class="model-tag tag-gpt">GPT-4</span> <span class="model-tag tag-gemini">Gemini</span></div>
+    </div>
+    <div class="lt-card">
+      <div class="lt-icon">🔍</div>
+      <h4>Unsupervised Learning</h4>
+      <div class="lt-visual">
+        <div class="lt-clusters">
+          <span class="cluster-dot" style="background:#0f766e;left:20%;top:30%"></span>
+          <span class="cluster-dot" style="background:#0f766e;left:25%;top:35%"></span>
+          <span class="cluster-dot" style="background:#0f766e;left:18%;top:40%"></span>
+          <span class="cluster-dot" style="background:#4338ca;left:60%;top:25%"></span>
+          <span class="cluster-dot" style="background:#4338ca;left:65%;top:30%"></span>
+          <span class="cluster-dot" style="background:#4338ca;left:58%;top:20%"></span>
+          <span class="cluster-dot" style="background:#b45309;left:40%;top:65%"></span>
+          <span class="cluster-dot" style="background:#b45309;left:45%;top:70%"></span>
+          <span class="cluster-dot" style="background:#b45309;left:38%;top:72%"></span>
+        </div>
+      </div>
+      <p>No answers given — find structure on its own. Discovers clusters, patterns, and anomalies in raw data.</p>
+      <div class="lt-tags"><span class="tag-sm">Clustering</span> <span class="tag-sm">Anomaly detection</span></div>
+    </div>
+    <div class="lt-card">
+      <div class="lt-icon">🎮</div>
+      <h4>Reinforcement Learning</h4>
+      <div class="lt-visual">
+        <div class="lt-flow">
+          <span class="lt-item">action</span>
+          <span class="lt-arrow">→</span>
+          <span class="lt-item lt-model">environment</span>
+          <span class="lt-arrow">→</span>
+          <span class="lt-item lt-reward">+reward</span>
+        </div>
+      </div>
+      <p>Learn by trial and error. Take actions, receive rewards or penalties. Like training a dog with treats.</p>
+      <div class="lt-tags"><span class="model-tag tag-claude">Claude RLHF</span> <span class="tag-sm">AlphaGo</span> <span class="tag-sm">Robotics</span></div>
+    </div>
+  </div>
+
+  <!-- Vocabulary Table -->
+  <h3 class="section-subhead">Essential vocabulary</h3>
+  <div class="vocab-table">
+    <table>
+      <thead><tr><th>Term</th><th>Plain English</th><th>In AI</th><th>Scale</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Parameter</strong></td><td>A knob you can turn</td><td>A learnable number in the model</td><td>GPT-4: ~1.8 trillion</td></tr>
+        <tr><td><strong>Training</strong></td><td>Practice makes perfect</td><td>Adjusting all parameters to reduce error</td><td>Months of GPU computation</td></tr>
+        <tr><td><strong>Loss</strong></td><td>How wrong you are</td><td>A number measuring prediction error</td><td>Lower = better model</td></tr>
+        <tr><td><strong>Epoch</strong></td><td>One study session</td><td>One pass through all training data</td><td>Models train for many epochs</td></tr>
+        <tr><td><strong>Inference</strong></td><td>Using what you learned</td><td>Running the trained model on new data</td><td>When you chat with Claude</td></tr>
+        <tr><td><strong>Batch size</strong></td><td>How many flashcards per round</td><td>Examples processed before updating weights</td><td>Typically 256 to 4096</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="bridge"><div class="bridge-arrow">↓</div><p>Now let's see <strong>inside</strong> a neural network — the computational architecture that makes all of this possible.</p></div>
+
+<!-- ═══════════════ CH5: NEURAL NETWORKS ═══════════════ -->
+<section class="chapter" id="ch5">
+  <div class="chapter-header">
+    <div class="ch-num">05</div>
+    <h2 class="ch-title">Neural Networks</h2>
+    <p class="ch-subtitle">Stack simple functions into layers. Each layer transforms data, learning increasingly abstract patterns.</p>
+  </div>
+  <div class="split-layout">
+    <div class="viz-panel">
+      <canvas id="nnCanvas"></canvas>
+      <div class="viz-hint">Hover neurons to explore connections</div>
+    </div>
+    <div class="explain-panel">
+      <h3>What you're seeing</h3>
+      <div class="explain-row"><div class="dot dot-stone"></div><p>Each circle = a <strong>neuron</strong>. It computes: <code>output = activation(Σ(weight × input) + bias)</code></p></div>
+      <div class="explain-row"><div class="dot dot-teal"></div><p><strong class="text-teal">Green lines</strong> = positive weights (excitatory). When the input neuron fires, it <em>encourages</em> the connected neuron to fire too.</p></div>
+      <div class="explain-row"><div class="dot dot-rose"></div><p><strong class="text-rose">Red lines</strong> = negative weights (inhibitory). When the input fires, it <em>suppresses</em> the connected neuron. Thicker = stronger effect.</p></div>
+      <div class="explain-row"><div class="dot dot-amber"></div><p><strong>Hover</strong> any neuron to see its specific connections highlighted and its activation value.</p></div>
+      <div class="live-readout" id="nnReadout">Hover over neurons to explore</div>
+    </div>
+  </div>
+  <div class="callout-row">
+    <div class="callout">
+      <div class="callout-title">⚖️ Weights — what are they really?</div>
+      <p>A <strong>weight</strong> is a number on each connection that controls <em>how much influence</em> one neuron has on the next. Weight = 0.9 means "pass most of the signal through." Weight = -0.3 means "pass a little, inverted." Weight = 0 means "ignore completely." During training, the network adjusts every weight to reduce errors — that's what learning <em>is</em>.</p>
+    </div>
+    <div class="callout">
+      <div class="callout-title">➕ Biases — the offset</div>
+      <p>Each neuron also has a <strong>bias</strong> — a number added after all the weighted inputs are summed. It shifts the neuron's activation threshold. Without bias, a neuron with all-zero inputs would always output zero. The bias lets it fire even with weak inputs, or stay quiet even with strong ones. Think of it as the neuron's "default mood."</p>
+    </div>
+  </div>
+  <div class="callout-row">
+    <div class="callout">
+      <div class="callout-title">🔢 The neuron formula</div>
+      <p><code>output = activation(w₁×x₁ + w₂×x₂ + ... + wₙ×xₙ + bias)</code><br><br>Each input <strong>xᵢ</strong> is multiplied by its weight <strong>wᵢ</strong>, all products are summed, the bias is added, then an activation function squashes the result. This single formula — repeated billions of times across layers — is how <span class="model-tag tag-claude">Claude</span> thinks.</p>
+    </div>
+    <div class="callout">
+      <div class="callout-title">📊 Data flow example</div>
+      <p><strong>3 input neurons</strong> receive pixel values [0.8, 0.2, 0.5]. Each value is multiplied by connection weights, summed at the next neuron, bias added, then activated. <strong>2 output neurons</strong> produce probabilities like [0.9, 0.1] → "90% cat, 10% dog." Training adjusts every weight and bias until these outputs are correct.</p>
+    </div>
+  </div>
+</section>
+
+<div class="bridge"><div class="bridge-arrow">↓</div><p>Problem: stacking linear layers still gives a straight line. We need <strong>curves</strong>. That's what activation functions do.</p></div>
+
+<!-- ═══════════════ CH6: ACTIVATIONS ═══════════════ -->
+<section class="chapter" id="ch6">
+  <div class="chapter-header">
+    <div class="ch-num">06</div>
+    <h2 class="ch-title">Activation Functions</h2>
+    <p class="ch-subtitle">Without these, a 100-layer network is no better than 1 layer. They give neural networks their power.</p>
+  </div>
+  <div class="split-layout">
+    <div class="viz-panel" style="background:#fff">
+      <div class="act-header">
+        <span class="act-title">⚡ Compare activation functions</span>
+        <div class="act-btns">
+          <button class="btn-ctrl btn-active" data-fn="relu">ReLU</button>
+          <button class="btn-ctrl" data-fn="sigmoid">Sigmoid</button>
+          <button class="btn-ctrl" data-fn="tanh">Tanh</button>
+          <button class="btn-ctrl" data-fn="gelu">GELU</button>
+        </div>
+      </div>
+      <canvas id="actCanvas"></canvas>
+    </div>
+    <div class="explain-panel">
+      <h3>Why we need activation functions</h3>
+      <p class="explain-intro">Without activations, multiplying matrices is always linear: <code>y = Wx + b</code>. Stacking 100 linear layers collapses to one. Activation functions add <strong>curves</strong>, letting the network model complex patterns.</p>
+      <div class="explain-row"><div class="dot dot-rose"></div><p><strong>ReLU</strong>: if negative → output 0. If positive → pass through. Simple, fast, most popular. Used in almost all modern networks.</p></div>
+      <div class="explain-row"><div class="dot dot-indigo"></div><p><strong>Sigmoid</strong>: squashes everything to 0–1. Used when you need probabilities. "How confident is the model?"</p></div>
+      <div class="explain-row"><div class="dot dot-sky"></div><p><strong>Tanh</strong>: outputs -1 to +1. Centered at zero, which helps training converge faster.</p></div>
+      <div class="explain-row"><div class="dot dot-teal"></div><p><strong>GELU</strong>: smooth version of ReLU. The modern standard — used in <span class="model-tag tag-claude">Claude</span> <span class="model-tag tag-gpt">GPT-4</span> <span class="model-tag tag-gemini">Gemini</span>.</p></div>
+      <div class="live-readout" id="actReadout">ReLU: max(0, x) — the most popular</div>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:1.5rem">
+    <div class="callout-title">📐 Linear vs non-linear</div>
+    <p>A <strong>linear</strong> function can only draw straight lines/flat planes — 2D boundaries. <strong>Non-linear</strong> activations let the network bend and twist decision boundaries in any dimension, modeling complex patterns like language, images, and reasoning.</p>
+  </div>
+</section>
+
+<div class="bridge"><div class="bridge-arrow">↓</div><p>How does the network <strong>learn</strong>? How do we adjust billions of parameters? Enter <strong>backpropagation</strong>.</p></div>
+
+<!-- ═══════════════ CH7: BACKPROPAGATION ═══════════════ -->
+<section class="chapter" id="ch7">
+  <div class="chapter-header">
+    <div class="ch-num">07</div>
+    <h2 class="ch-title">Backpropagation</h2>
+    <p class="ch-subtitle">The chain rule traces errors backward through every layer, computing each parameter's contribution to the mistake.</p>
+  </div>
+  <div class="split-layout">
+    <div class="viz-panel">
+      <canvas id="bpCanvas"></canvas>
+      <div class="bp-controls">
+        <button class="btn-ctrl btn-play" id="bpRun">▶ Run</button>
+        <button class="btn-ctrl" id="bpReset">⟳ Reset</button>
+      </div>
+    </div>
+    <div class="explain-panel">
+      <h3>What you're seeing</h3>
+      <div class="explain-row"><div class="dot dot-teal"></div><p><strong class="text-teal">Forward pass</strong> (green signals): data flows left→right through each layer, producing a prediction at the output.</p></div>
+      <div class="explain-row"><div class="dot dot-rose"></div><p><strong class="text-rose">Backward pass</strong> (red signals): error gradients flow right→left. Each weight learns: "how much did <em>I</em> contribute to the mistake?"</p></div>
+      <div class="explain-row"><div class="dot dot-indigo"></div><p><strong>Chain rule</strong>: <code>∂Loss/∂w = ∂Loss/∂output × ∂output/∂w</code>. Multiply local gradients layer by layer.</p></div>
+      <div class="explain-row"><div class="dot dot-amber"></div><p>After backward: <code>weight = weight − lr × gradient</code>. Every weight adjusts proportionally. Repeat billions of times.</p></div>
+      <div class="live-readout" id="bpReadout">Click Run to watch the signal flow</div>
+    </div>
+  </div>
+
+  <div class="step-flow">
+    <div class="step-card"><div class="step-num">1</div><div class="step-icon">→</div><h4>Forward</h4><p>Data flows through layers → prediction</p></div>
+    <div class="step-card"><div class="step-num">2</div><div class="step-icon">✗</div><h4>Loss</h4><p>Compare prediction to truth — how wrong?</p></div>
+    <div class="step-card"><div class="step-num">3</div><div class="step-icon">←</div><h4>Backward</h4><p>Chain rule sends gradients back</p></div>
+    <div class="step-card"><div class="step-num">4</div><div class="step-icon">↻</div><h4>Update</h4><p>Adjust every weight by its gradient</p></div>
+    <div class="step-card"><div class="step-num">5</div><div class="step-icon">∞</div><h4>Repeat</h4><p>Billions of times across data</p></div>
+  </div>
+</section>
+
+<div class="bridge"><div class="bridge-arrow">↓</div><p>Before understanding Transformers, we need to know <strong>how AI reads text</strong>. It doesn't understand words — only numbers.</p></div>
+
+<!-- ═══════════════ CH8: TOKENS ═══════════════ -->
+<section class="chapter" id="ch8">
+  <div class="chapter-header">
+    <div class="ch-num">08</div>
+    <h2 class="ch-title">Tokens & Embeddings</h2>
+    <p class="ch-subtitle">Text → sub-word pieces → high-dimensional number vectors. This is how AI reads.</p>
+  </div>
+  <div class="split-layout">
+    <div class="viz-panel tokenizer-panel">
+      <div class="tok-stage">
+        <div class="tok-label">Original text</div>
+        <div class="tok-original" id="tokInput">The curious cat jumped over the lazy dog</div>
+      </div>
+      <div class="tok-arrow">✂️ tokenize</div>
+      <div class="tok-stage">
+        <div class="tok-label">Tokens (sub-word pieces)</div>
+        <div class="tok-tokens" id="tokTokens"></div>
+      </div>
+      <div class="tok-arrow">📊 embed into vectors</div>
+      <div class="tok-stage">
+        <div class="tok-label">Embedding vectors (~1000+ numbers each)</div>
+        <div class="tok-embeddings" id="tokEmbeddings"></div>
+      </div>
+      <div class="tok-footer">+ position encoding (word order matters)</div>
+    </div>
+    <div class="explain-panel">
+      <h3>What you're seeing</h3>
+      <div class="explain-row"><div class="dot dot-teal"></div><p><strong>Tokenization</strong>: text is split into sub-word pieces. "understanding" → ["under", "stand", "ing"]. This lets models handle any word — even made-up ones.</p></div>
+      <div class="explain-row"><div class="dot dot-indigo"></div><p><strong>Embedding</strong>: each token is mapped to a vector of ~1000+ numbers. Similar-meaning tokens end up close together in this "meaning space."</p></div>
+      <div class="explain-row"><div class="dot dot-amber"></div><p><strong>Position encoding</strong>: adds information about WHERE each token appears. "Dog bites man" ≠ "man bites dog" — word order matters!</p></div>
+      <div class="live-readout" id="tokReadout">Each token → unique ID → high-dimensional vector</div>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:1.5rem">
+    <div class="callout-title">🌍 Context windows</div>
+    <p><span class="model-tag tag-claude">Claude</span> 200K tokens. <span class="model-tag tag-gpt">GPT-4</span> 128K. <span class="model-tag tag-gemini">Gemini</span> up to 1M. One token ≈ ¾ of a word in English.</p>
+  </div>
+</section>
+
+<div class="bridge"><div class="bridge-arrow">↓</div><p>Tokens are now numbers. The breakthrough question: how should each token <strong>"look at" the others</strong> to understand context?</p></div>
+
+<!-- ═══════════════ CH9: ATTENTION ═══════════════ -->
+<section class="chapter" id="ch9">
+  <div class="chapter-header">
+    <div class="ch-num">09</div>
+    <h2 class="ch-title">Attention</h2>
+    <p class="ch-subtitle">Instead of reading sequentially, attention lets every word look at every other word simultaneously.</p>
+  </div>
+  <div class="split-layout">
+    <div class="viz-panel">
+      <canvas id="attnCanvas"></canvas>
+      <div class="viz-hint">Hover over words to see attention patterns</div>
+    </div>
+    <div class="explain-panel">
+      <h3>What you're seeing</h3>
+      <div class="explain-row"><div class="dot dot-teal"></div><p><strong>Hover any word</strong>. The arcs show how much <strong>attention</strong> that word pays to every other word. Thicker = more attention.</p></div>
+      <div class="explain-row"><div class="dot dot-amber"></div><p>The <strong class="text-amber">highlighted word</strong> is the "source." Percentages show attention weights — they always sum to 100%.</p></div>
+      <div class="explain-row"><div class="dot dot-indigo"></div><p>Notice: "cat" attends strongly to "curious" (its adjective) and "jumped" (its verb). The model <em>learns</em> which relationships matter from data.</p></div>
+      <div class="live-readout" id="attnReadout">Hover words to explore attention patterns</div>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:1.5rem">
+    <div class="callout-title">💡 How attention resolves "it"</div>
+    <p>In "The cat sat on the mat because <strong>it</strong> was tired" — what does "it" refer to? Attention lets the model look back and connect "it" to "cat" based on learned patterns. This is why transformers understand context so well.</p>
+  </div>
+</section>
+
+<div class="bridge"><div class="bridge-arrow">↓</div><p>Attention uses <strong>Queries, Keys, and Values</strong> — like searching a library. Let's build the full <strong>Transformer</strong>.</p></div>
+
+<!-- ═══════════════ CH10: TRANSFORMERS ═══════════════ -->
+<section class="chapter" id="ch10">
+  <div class="chapter-header">
+    <div class="ch-num">10</div>
+    <h2 class="ch-title">Transformers</h2>
+    <p class="ch-subtitle">"Attention Is All You Need" (2017). The architecture behind Claude, GPT, and Gemini.</p>
+  </div>
+
+  <!-- QKV Explanation -->
+  <div class="split-layout">
+    <div class="viz-panel qkv-panel">
+      <div class="qkv-flow">
+        <div class="qkv-node" style="--c:#4338ca"><span>E</span><small>Input</small></div>
+        <div class="qkv-arrow">→</div>
+        <div class="qkv-group">
+          <div class="qkv-node" style="--c:#be123c"><span>Q</span><small>Query</small></div>
+          <div class="qkv-node" style="--c:#0f766e"><span>K</span><small>Key</small></div>
+          <div class="qkv-node" style="--c:#b45309"><span>V</span><small>Value</small></div>
+        </div>
+        <div class="qkv-arrow">→</div>
+        <div class="qkv-node" style="--c:#4338ca"><span>S</span><small>Score</small></div>
+        <div class="qkv-arrow">→</div>
+        <div class="qkv-node" style="--c:#0f766e"><span>O</span><small>Output</small></div>
+      </div>
+      <div class="qkv-formula">Attention(Q,K,V) = softmax(QK<sup>T</sup> / √d) × V</div>
+    </div>
+    <div class="explain-panel">
+      <h3>Query, Key, Value</h3>
+      <div class="explain-row"><div class="dot dot-rose"></div><p><strong>Query (Q)</strong>: "What am I looking for?" — each token generates a query describing what context it needs.</p></div>
+      <div class="explain-row"><div class="dot dot-teal"></div><p><strong>Key (K)</strong>: "What do I contain?" — each token generates a key describing its information.</p></div>
+      <div class="explain-row"><div class="dot dot-amber"></div><p><strong>Value (V)</strong>: "Here's my content" — the actual information to retrieve when key matches query.</p></div>
+      <div class="explain-row"><div class="dot dot-indigo"></div><p><strong>Score</strong>: Q·K dot product measures similarity. softmax normalizes to probabilities. Multiply by V to get weighted information.</p></div>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:1.5rem">
+    <div class="callout-title">📚 Library analogy</div>
+    <p><strong>Q</strong> = your search query. <strong>K</strong> = labels on each book. <strong>V</strong> = the book content. Attention finds which books match your query, then gives you a weighted summary of their contents.</p>
+  </div>
+
+  <!-- Transformer Pipeline -->
+  <h3 class="section-subhead">The full transformer pipeline</h3>
+  <div class="step-flow">
+    <div class="step-card"><div class="step-num">1</div><h4>Tokenize</h4><p>Split text into tokens</p></div>
+    <div class="step-card"><div class="step-num">2</div><h4>Embed</h4><p>Map to vectors</p></div>
+    <div class="step-card"><div class="step-num">3</div><h4>Self-Attention</h4><p>Q·K·V for each token</p></div>
+    <div class="step-card"><div class="step-num">4</div><h4>Feed-Forward</h4><p>Process attended info</p></div>
+    <div class="step-card"><div class="step-num">5</div><h4>×96 layers</h4><p>Stack deep</p></div>
+    <div class="step-card"><div class="step-num">6</div><h4>Predict</h4><p>Next token probability</p></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-num" style="color:#0f766e">96</div><p>Transformer layers in frontier models</p></div>
+    <div class="stat-card"><div class="stat-num" style="color:#4338ca">128</div><p>Attention heads per layer</p></div>
+    <div class="stat-card"><div class="stat-num" style="color:#be123c">~1T</div><p>Tokens seen during training</p></div>
+    <div class="stat-card"><div class="stat-num" style="color:#b45309">~1T</div><p>Learnable parameters</p></div>
+  </div>
+
+  <!-- Architecture Variants -->
+  <h3 class="section-subhead">Transformer variants — not all models are the same</h3>
+  <p class="ch-subtitle" style="margin-bottom:1.5rem;text-align:center">The standard transformer is the foundation, but teams have developed key variations to improve efficiency and capability.</p>
+
+  <div class="learning-types">
+    <div class="lt-card">
+      <div class="lt-icon">🧱</div>
+      <h4>Dense Transformer</h4>
+      <div class="lt-visual">
+        <div class="lt-flow">
+          <span class="lt-item">input</span>
+          <span class="lt-arrow">→</span>
+          <span class="lt-item lt-model">ALL neurons</span>
+          <span class="lt-arrow">→</span>
+          <span class="lt-item lt-label">output</span>
+        </div>
+      </div>
+      <p>Every token passes through <strong>every</strong> parameter in every layer. Simple, powerful, but computationally expensive. All parameters are active for every input.</p>
+      <div class="lt-tags"><span class="model-tag tag-claude">Claude</span> <span class="model-tag tag-gpt">GPT-4o</span> <span class="tag-sm">LLaMA</span> <span class="tag-sm">Gemma</span></div>
+    </div>
+    <div class="lt-card">
+      <div class="lt-icon">🔀</div>
+      <h4>Mixture of Experts (MoE)</h4>
+      <div class="lt-visual">
+        <div class="lt-flow">
+          <span class="lt-item">input</span>
+          <span class="lt-arrow">→</span>
+          <span class="lt-item lt-model">router</span>
+          <span class="lt-arrow">→</span>
+          <span class="lt-item lt-reward">2 of 16 experts</span>
+        </div>
+      </div>
+      <p>Has many "expert" sub-networks, but a <strong>router</strong> picks only 2–4 experts per token. Total parameters are huge but compute per token is small. More efficient at scale.</p>
+      <div class="lt-tags"><span class="tag-sm">Mixtral</span> <span class="tag-sm">Grok</span> <span class="tag-sm">DeepSeek-V3</span> <span class="tag-sm">Kimi K2</span></div>
+    </div>
+    <div class="lt-card">
+      <div class="lt-icon">🔄</div>
+      <h4>State Space Models (SSM)</h4>
+      <div class="lt-visual">
+        <div class="lt-flow">
+          <span class="lt-item">input</span>
+          <span class="lt-arrow">→</span>
+          <span class="lt-item lt-model">state</span>
+          <span class="lt-arrow">→</span>
+          <span class="lt-item lt-label">output</span>
+        </div>
+      </div>
+      <p>Process sequences through a <strong>compressed state</strong> instead of attending to all tokens. Much faster for very long sequences. Linear complexity vs quadratic for attention.</p>
+      <div class="lt-tags"><span class="tag-sm">Mamba</span> <span class="tag-sm">Jamba</span> <span class="tag-sm">Zamba</span></div>
+    </div>
+  </div>
+
+  <div class="vocab-table" style="margin-top:1.5rem">
+    <table>
+      <thead><tr><th>Architecture</th><th>Total params</th><th>Active per token</th><th>Strength</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Dense</strong></td><td>All</td><td>All (100%)</td><td>Maximum quality per parameter</td><td>Expensive to run — every param used every time</td></tr>
+        <tr><td><strong>MoE</strong></td><td>Very large (e.g. 600B)</td><td>Small subset (e.g. 40B)</td><td>Fast inference despite huge total size</td><td>Harder to train, needs careful routing</td></tr>
+        <tr><td><strong>SSM/Mamba</strong></td><td>Moderate</td><td>All</td><td>Very fast on long sequences</td><td>May lose fine-grained attention detail</td></tr>
+        <tr><td><strong>Hybrid (SSM + Attention)</strong></td><td>Varies</td><td>Varies</td><td>Best of both — speed + precision</td><td>Complex architecture design</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout" style="margin-top:1rem">
+    <div class="callout-title">💡 MoE in plain English</div>
+    <p>Imagine a hospital with 16 specialist doctors but each patient only sees 2 of them. A <strong>router</strong> (triage nurse) decides which specialists each patient needs. The hospital has the expertise of 16 doctors but the cost of running 2. That's MoE — a model like <strong>Mixtral 8x7B</strong> has 47B total parameters but only activates ~13B per token. <strong>DeepSeek-V3</strong> uses 671B total but activates only ~37B. The result: frontier-level quality at a fraction of the compute cost.</p>
+  </div>
+
+  <div class="callout" style="max-width:800px;margin:2rem auto">
+    <div class="callout-title">🔗 Go deeper — see it in real code</div>
+    <p>Now that you understand the concepts, see a real GPT built line by line: <a href="https://raj8github.github.io/how-gpt-works/" target="_blank" class="callout-link">How a GPT Works — Line by Line</a> walks through Karpathy's 200-line microgpt.py with animated diagrams, showing exactly how tokens, attention, and backpropagation work in actual Python code.</p>
+    <p style="margin-top:.6rem">Also explore: <a href="https://poloclub.github.io/transformer-explainer/" target="_blank" class="callout-link">Transformer Explainer</a> (live GPT-2 in browser) · <a href="https://bbycroft.net/llm" target="_blank" class="callout-link">LLM Visualization</a> (3D walkthrough).</p>
+  </div>
+</section>
+
+<div class="bridge"><div class="bridge-arrow">↓</div><p>The model predicts a probability distribution over all possible next tokens. But how do we <strong>choose</strong> which token to actually output?</p></div>
+
+<!-- ═══════════════ CH11: TEMPERATURE & SAMPLING ═══════════════ -->
+<section class="chapter" id="ch11">
+  <div class="chapter-header">
+    <div class="ch-num">11</div>
+    <h2 class="ch-title">Temperature & Sampling</h2>
+    <p class="ch-subtitle">How the model chooses its next word. Temperature, top-k, and top-p control creativity vs. predictability.</p>
+  </div>
+  <div class="split-layout">
+    <div class="viz-panel">
+      <canvas id="tempCanvas"></canvas>
+    </div>
+    <div class="explain-panel">
+      <h3>What you're seeing</h3>
+      <div class="explain-row"><div class="dot dot-teal"></div><p>The bars show the <strong>probability</strong> of each possible next word. The model has produced a distribution — now we must <strong>sample</strong> from it.</p></div>
+      <div class="explain-row"><div class="dot dot-amber"></div><p><strong>Temperature</strong>: controls randomness. Low (0.1) = very focused, picks the top word. High (2.0) = more random, creative, surprising.</p></div>
+      <div class="explain-row"><div class="dot dot-indigo"></div><p><strong>Top-K</strong>: only consider the K most likely words. K=5 means ignore everything except the top 5 candidates.</p></div>
+      <div class="explain-row"><div class="dot dot-rose"></div><p><strong>Top-P (nucleus)</strong>: keep words until cumulative probability reaches P. P=0.9 means keep the smallest set of words that covers 90% probability.</p></div>
+      <div class="live-readout" id="tempReadout">Adjust the sliders to see how sampling changes</div>
+      <div class="control-group">
+        <div class="slider-row">
+          <label>Temperature</label>
+          <input type="range" id="tempSlider" min="10" max="200" value="70">
+          <span class="slider-val" id="tempVal">0.70</span>
+        </div>
+        <div class="slider-row">
+          <label>Top-K</label>
+          <input type="range" id="topkSlider" min="1" max="20" value="10">
+          <span class="slider-val" id="topkVal">10</span>
+        </div>
+        <div class="slider-row">
+          <label>Top-P</label>
+          <input type="range" id="toppSlider" min="10" max="100" value="90">
+          <span class="slider-val" id="toppVal">0.90</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:1.5rem">
+    <div class="callout-title">💡 When to use what</div>
+    <p><strong>Code generation</strong>: low temperature (0.2) — you want precision. <strong>Creative writing</strong>: higher temperature (0.8–1.0). <strong>Brainstorming</strong>: high temperature (1.2+). <span class="model-tag tag-claude">Claude</span> typically uses temperature 0.7–1.0.</p>
+  </div>
+
+  <!-- Step by step sampling explanation -->
+  <h3 class="section-subhead">How sampling works, step by step</h3>
+  <div class="step-flow">
+    <div class="step-card"><div class="step-num">1</div><div class="step-icon">📊</div><h4>Raw logits</h4><p>The model outputs a raw score for every word in its vocabulary (~100K words)</p></div>
+    <div class="step-card"><div class="step-num">2</div><div class="step-icon">🌡️</div><h4>Apply temperature</h4><p>Divide all scores by temperature. Low temp → sharp peaks. High temp → flatter distribution.</p></div>
+    <div class="step-card"><div class="step-num">3</div><div class="step-icon">📈</div><h4>Softmax</h4><p>Convert scores to probabilities (0–1, sum to 100%). Higher score → higher probability.</p></div>
+    <div class="step-card"><div class="step-num">4</div><div class="step-icon">✂️</div><h4>Apply Top-K</h4><p>Keep only the K most probable words. Discard the rest (probability → 0).</p></div>
+    <div class="step-card"><div class="step-num">5</div><div class="step-icon">🎯</div><h4>Apply Top-P</h4><p>Keep smallest set of words whose probabilities sum to ≥ P. Further reduces candidates.</p></div>
+    <div class="step-card"><div class="step-num">6</div><div class="step-icon">🎲</div><h4>Sample</h4><p>Randomly pick one word from remaining candidates, weighted by probability. This becomes the next token.</p></div>
+  </div>
+
+  <div class="callout" style="max-width:800px;margin:1rem auto">
+    <div class="callout-title">🔁 Then repeat</div>
+    <p>The chosen token is appended to the sequence. The entire process runs again to pick the <em>next</em> token. This continues until the model outputs a stop token or reaches the maximum length. <span class="model-tag tag-claude">Claude</span> generates ~50–100 tokens per second this way.</p>
+  </div>
+</section>
+
+<div class="bridge"><div class="bridge-arrow">↓</div><p>You now understand every piece. Final chapter: how <strong>Claude</strong> is built — and what happens when you press Enter.</p></div>
+
+<!-- ═══════════════ CH12: CLAUDE ═══════════════ -->
+<section class="chapter" id="ch12">
+  <div class="chapter-header">
+    <div class="ch-num">12</div>
+    <h2 class="ch-title">How Claude Works</h2>
+    <p class="ch-subtitle">Claude is a Transformer built by Anthropic. What makes it special isn't the architecture — it's how it's trained.</p>
+  </div>
+
+  <!-- What happens when you press Enter -->
+  <h3 class="section-subhead">What happens when you press Enter</h3>
+  <p class="ch-subtitle" style="text-align:center;margin-bottom:1.5rem">Every concept you've learned — working together in under 2 seconds.</p>
+
+  <div class="viz-panel" style="padding:2rem;background:#fff">
+    <canvas id="pipelineCanvas"></canvas>
+  </div>
+
+  <div class="step-flow" style="margin-top:2rem">
+    <div class="step-card"><div class="step-num">1</div><div class="step-icon">⌨️</div><h4>You type</h4><p>"What is gravity?"</p></div>
+    <div class="step-card"><div class="step-num">2</div><div class="step-icon">🌐</div><h4>API call</h4><p>Your text travels to Anthropic's servers</p></div>
+    <div class="step-card"><div class="step-num">3</div><div class="step-icon">✂️</div><h4>Tokenize</h4><p>"What" "is" "grav" "ity" "?" → 5 token IDs</p></div>
+    <div class="step-card"><div class="step-num">4</div><div class="step-icon">📊</div><h4>Embed</h4><p>Each token → a vector of ~4000 numbers</p></div>
+    <div class="step-card"><div class="step-num">5</div><div class="step-icon">📍</div><h4>Position</h4><p>Add position info — word order matters</p></div>
+    <div class="step-card"><div class="step-num">6</div><div class="step-icon">🔁</div><h4>96 layers</h4><p>Each: attention → feed-forward → normalize</p></div>
+  </div>
+  <div class="step-flow">
+    <div class="step-card"><div class="step-num">7</div><div class="step-icon">🔦</div><h4>Attention</h4><p>128 heads find relevant context per token</p></div>
+    <div class="step-card"><div class="step-num">8</div><div class="step-icon">⚖️</div><h4>Weights</h4><p>Billions of learned parameters transform the signal</p></div>
+    <div class="step-card"><div class="step-num">9</div><div class="step-icon">📈</div><h4>Logits</h4><p>Final layer outputs score for every vocabulary word</p></div>
+    <div class="step-card"><div class="step-num">10</div><div class="step-icon">🌡️</div><h4>Sample</h4><p>Temperature + top-k + top-p → pick next token</p></div>
+    <div class="step-card"><div class="step-num">11</div><div class="step-icon">🔄</div><h4>Repeat</h4><p>Append token, run again. ~50-100 tokens/sec</p></div>
+    <div class="step-card"><div class="step-num">12</div><div class="step-icon">💬</div><h4>Stream</h4><p>Tokens stream back to your screen as text</p></div>
+  </div>
+
+  <div class="callout-row" style="margin-top:1.5rem">
+    <div class="callout">
+      <div class="callout-title">⏱️ The numbers</div>
+      <p>For a typical response of 200 words (~270 tokens): <strong>270 complete passes</strong> through all 96 transformer layers. Each pass involves <strong>billions of multiplications</strong> across attention heads and feed-forward networks. Total time: <strong>2-5 seconds</strong>.</p>
+    </div>
+    <div class="callout">
+      <div class="callout-title">🤯 What makes it feel magical</div>
+      <p>The model has <strong>no memory between conversations</strong> — your entire chat is re-read from scratch each time. It doesn't "think" — it predicts the next token, over and over. Yet from this simple loop, <strong>reasoning, creativity, and understanding emerge</strong>.</p>
+    </div>
+  </div>
+
+  <h3 class="section-subhead">The four phases of building Claude</h3>
+  <div class="phase-grid">
+    <div class="phase-card">
+      <div class="phase-num">Phase 1</div>
+      <h4>Pre-training</h4>
+      <p>Learn language from trillions of words by predicting the next token, over and over. Like reading every book, article, and website ever written — building a massive internal model of how language works.</p>
+      <div class="phase-detail">
+        <strong>Task:</strong> Given "The cat sat on the ___", predict "mat".<br>
+        <strong>Scale:</strong> Trillions of tokens, thousands of GPUs, months of compute.
+      </div>
+    </div>
+    <div class="phase-card">
+      <div class="phase-num">Phase 2</div>
+      <h4>RLHF</h4>
+      <p>Reinforcement Learning from Human Feedback. Human raters compare pairs of responses: "Response A is better than Response B." The model learns to prefer helpful, accurate, well-structured answers.</p>
+      <div class="phase-detail">
+        <strong>Process:</strong> Generate → Human rates → Reward model → Fine-tune.<br>
+        <strong>Goal:</strong> Align model behavior with human preferences.
+      </div>
+    </div>
+    <div class="phase-card phase-highlight">
+      <div class="phase-num">Phase 3</div>
+      <h4>Constitutional AI</h4>
+      <p>Claude's unique approach. Instead of relying only on human raters, Claude evaluates its <strong>own</strong> responses against a set of principles — like having an internal critic.</p>
+      <div class="phase-detail">
+        <strong>Process:</strong> Generate → Self-critique against principles → Revise → Improve.<br>
+        <strong>Why unique:</strong> Scales better than human feedback alone. Claude can self-improve.
+      </div>
+    </div>
+    <div class="phase-card">
+      <div class="phase-num">Phase 4</div>
+      <h4>Inference</h4>
+      <p>When you chat with Claude: your prompt → tokens → through all 96+ transformer layers with attention → predict one token at a time → stream the response back to you.</p>
+      <div class="phase-detail">
+        <strong>Speed:</strong> ~50-100 tokens/second generated.<br>
+        <strong>Each token:</strong> passes through every layer, attending to all previous tokens.
+      </div>
+    </div>
+  </div>
+
+  <!-- RLHF Explained -->
+  <h3 class="section-subhead">What is RLHF?</h3>
+  <div class="callout-row">
+    <div class="callout">
+      <div class="callout-title">🤔 The problem RLHF solves</div>
+      <p>After pre-training, the model can generate fluent text — but it might be unhelpful, offensive, or confidently wrong. It learned to predict text, not to be <em>useful</em>. RLHF (Reinforcement Learning from Human Feedback) teaches the model what humans actually want: helpful, honest, harmless responses.</p>
+    </div>
+    <div class="callout">
+      <div class="callout-title">📋 How RLHF works, step by step</div>
+      <p><strong>1.</strong> The model generates multiple responses to the same prompt.<br>
+      <strong>2.</strong> Human raters rank them: "Response A > Response B > Response C."<br>
+      <strong>3.</strong> A <strong>reward model</strong> is trained on these rankings — it learns to score responses the way humans would.<br>
+      <strong>4.</strong> The main model is fine-tuned using reinforcement learning to maximize the reward model's score — while staying close to its original behavior.</p>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:1rem">
+    <div class="callout-title">💡 Why it matters</div>
+    <p>Without RLHF, asking "How do I make a cake?" might get a Wikipedia-style essay about the history of baking. With RLHF, you get a clear recipe. The model's knowledge doesn't change — RLHF changes how it <em>presents</em> that knowledge. It's the difference between a knowledgeable professor who lectures at you and one who actually answers your question. <span class="model-tag tag-claude">Claude</span> uses RLHF plus <strong>Constitutional AI</strong> (self-critique against principles) — which scales better because it doesn't need human raters for every improvement.</p>
+  </div>
+  <h3 class="section-subhead">Inside each transformer layer</h3>
+  <div class="vocab-table">
+    <table>
+      <thead><tr><th>Component</th><th>What it does</th><th>Analogy</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Tokenizer</strong></td><td>Splits text into sub-word pieces</td><td>Breaking words into syllables</td></tr>
+        <tr><td><strong>Embedding</strong></td><td>Maps each token to a ~4000-dimensional vector</td><td>GPS coordinates in meaning-space</td></tr>
+        <tr><td><strong>Multi-Head Attention</strong></td><td>128 attention heads look at context simultaneously</td><td>128 readers each highlighting different relationships</td></tr>
+        <tr><td><strong>Feed-Forward Network</strong></td><td>Processes the attended information through 2 dense layers</td><td>A "thinking" step — transform what was noticed</td></tr>
+        <tr><td><strong>Layer Normalization</strong></td><td>Stabilizes signal magnitude between layers</td><td>Keeping the volume level consistent</td></tr>
+        <tr><td><strong>Residual Connection</strong></td><td>Adds the input back to the output of each sub-layer</td><td>A shortcut — preserving the original signal</td></tr>
+        <tr><td><strong>Softmax Output</strong></td><td>Final probability distribution over ~100K vocabulary tokens</td><td>Ranking all possible next words by likelihood</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Tokens, Parameters, Weights explained -->
+  <h3 class="section-subhead">Tokens, parameters, and weights — how they connect</h3>
+  <div class="callout-row">
+    <div class="callout">
+      <div class="callout-title">🔤 Tokens</div>
+      <p><strong>Tokens are the input and output.</strong> Sub-word pieces the model reads and writes. "Hello, how are you?" becomes ~6 tokens. The model generates tokens one at a time. Tokens flow <em>through</em> the model — they're the data, not the model itself.</p>
+    </div>
+    <div class="callout">
+      <div class="callout-title">⚖️ Weights</div>
+      <p><strong>Weights are the learnable numbers inside the model.</strong> Every connection between neurons has a weight. Every attention head has weight matrices (Q, K, V). These numbers were learned during training — they <em>are</em> the model's knowledge. When we say a model "knows" something, it's encoded in these weights.</p>
+    </div>
+  </div>
+  <div class="callout-row">
+    <div class="callout">
+      <div class="callout-title">🎛️ Parameters</div>
+      <p><strong>Parameters = weights + biases.</strong> The total count of all learnable numbers. Every weight is a parameter. Every bias is a parameter. "Claude has billions of parameters" means billions of numbers adjusted during training.</p>
+    </div>
+    <div class="callout">
+      <div class="callout-title">🔗 How they connect</div>
+      <p><strong>Tokens</strong> flow through the network. At each layer, they're multiplied by <strong>weights</strong> (transformed). Total weights + biases = <strong>parameters</strong>. More parameters = more capacity to learn. Training adjusts all parameters to minimize loss. Inference passes tokens through fixed parameters.</p>
+    </div>
+  </div>
+
+  <!-- What does 7B mean -->
+  <h3 class="section-subhead">What does "7B model" mean?</h3>
+  <div class="vocab-table">
+    <table>
+      <thead><tr><th>Model size</th><th>Parameters</th><th>What it means</th><th>Analogy</th></tr></thead>
+      <tbody>
+        <tr><td><strong>7B</strong></td><td>7 billion</td><td>A capable model that runs on a single GPU. Popular for local/open-source use.</td><td>A detailed city map</td></tr>
+        <tr><td><strong>13B</strong></td><td>13 billion</td><td>Nearly 2× capacity. Better at nuance and complex reasoning.</td><td>A regional atlas</td></tr>
+        <tr><td><strong>70B</strong></td><td>70 billion</td><td>Needs multiple GPUs. Significantly more capable at complex tasks.</td><td>A national encyclopedia</td></tr>
+        <tr><td><strong>~400B+</strong></td><td>Hundreds of billions</td><td>Frontier models (Claude, GPT-4). Massive compute. State-of-the-art.</td><td>The internet's knowledge, compressed</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout" style="margin-top:1rem">
+    <div class="callout-title">💡 Size isn't everything</div>
+    <p>A 7B model = 7 billion weights, each typically 2 bytes → <strong>~14 GB</strong> of raw data. But parameter count alone doesn't determine quality — <strong>training data quality</strong>, <strong>training method</strong> (RLHF, Constitutional AI), and <strong>architecture choices</strong> matter enormously. A well-trained 7B can outperform a poorly trained 13B. This is why Anthropic invests in training methodology, not just scale.</p>
+  </div>
+
+</section>
+
+<!-- ═══════════════ NEXT STEP ═══════════════ -->
+<section class="chapter" style="text-align:center;padding:3rem 2rem">
+  <div class="ch-num">NEXT STEP</div>
+  <h2 class="ch-title" style="margin-bottom:1rem">See it in real code</h2>
+  <p class="ch-subtitle" style="margin-bottom:2rem">You understand the concepts. Now watch a GPT get built from scratch — line by line, with animated diagrams.</p>
+  <a href="https://raj8github.github.io/how-gpt-works/" target="_blank" class="btn-primary" style="font-size:1.1rem;padding:1rem 2.5rem">How a GPT Works — Line by Line →</a>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer class="site-footer">
+  <div class="footer-content">
+    <h2 class="footer-title">From Zero to AI</h2>
+    <p>12 interactive chapters · Every concept visualized</p>
+    <div class="footer-links">
+      <a href="https://raj8github.github.io/how-gpt-works/" target="_blank">How GPT Works — Line by Line</a>
+      <a href="https://poloclub.github.io/transformer-explainer/" target="_blank">Transformer Explainer</a>
+      <a href="https://bbycroft.net/llm" target="_blank">LLM Visualization</a>
+      <a href="https://playground.tensorflow.org" target="_blank">TensorFlow Playground</a>
+      <a href="https://r2d3.us/visual-intro-to-machine-learning-part-1/" target="_blank">R2D3 Visual ML</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+<script src="js/gradient-descent.js"></script>
+<script src="js/neural-network.js"></script>
+<script src="js/activations.js"></script>
+<script src="js/backprop.js"></script>
+<script src="js/tokenizer.js"></script>
+<script src="js/attention.js"></script>
+<script src="js/temperature.js"></script>
+<script src="js/pipeline.js"></script>
+</body>
+</html>
