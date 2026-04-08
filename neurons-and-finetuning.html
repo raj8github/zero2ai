@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neurons, Weights & Fine-Tuning — zero2ai Deep Dive</title>
+<meta name="description" content="An interactive deep dive into neurons, weights, activation functions, ReLU, and LoRA fine-tuning — part of the zero2ai learning series.">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+/* ═══════════════════════════════════════
+   DESIGN TOKENS — matches zero2ai palette
+═══════════════════════════════════════ */
+:root {
+  --cream:   #faf8f3;
+  --warm:    #f4f0e6;
+  --paper:   #ece6d8;
+  --border:  #d5cec0;
+  --ink:     #1c1917;
+  --ink2:    #3c3830;
+  --muted:   #8c8070;
+  --red:     #c0392b;
+  --amber:   #c87d1a;
+  --green:   #2d6a4f;
+  --navy:    #2c4a7c;
+  --shadow:  rgba(28,25,23,0.07);
+}
+
+/* ═══════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Lora', Georgia, serif;
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+/* ═══════════════════════════════════════
+   SCROLL PROGRESS
+═══════════════════════════════════════ */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 2px;
+  background: linear-gradient(90deg, var(--red), var(--amber));
+  z-index: 300; width: 0; transition: width 0.08s linear;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════
+   BACK LINK — breadcrumb feel
+═══════════════════════════════════════ */
+.back-bar {
+  background: var(--warm);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.back-link {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  transition: color 0.2s;
+}
+.back-link:hover { color: var(--red); }
+.back-sep { color: var(--border); font-size: 13px; }
+.back-current {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--ink2);
+  letter-spacing: 0.5px;
+}
+
+/* ═══════════════════════════════════════
+   CHAPTER SIDEBAR NAV
+═══════════════════════════════════════ */
+.layout {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  max-width: 1060px;
+  margin: 0 auto;
+  min-height: calc(100vh - 41px);
+}
+
+.sidebar {
+  border-right: 1px solid var(--border);
+  padding: 32px 0;
+  position: sticky;
+  top: 41px;
+  height: calc(100vh - 41px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  background: var(--warm);
+}
+.sidebar-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 20px;
+  margin-bottom: 12px;
+}
+.nav-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 2px solid transparent;
+  font-size: 13px;
+  color: var(--muted);
+  font-family: 'Lora', serif;
+  text-decoration: none;
+  line-height: 1.3;
+}
+.nav-item:hover { color: var(--ink2); border-left-color: var(--border); }
+.nav-item.active {
+  color: var(--red);
+  border-left-color: var(--red);
+  background: rgba(192,57,43,0.04);
+  font-style: italic;
+}
+.nav-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--border);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.nav-item.active .nav-num { color: var(--red); opacity: 0.6; }
+
+/* ═══════════════════════════════════════
+   MAIN CONTENT
+═══════════════════════════════════════ */
+main {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════
+   SECTIONS
+═══════════════════════════════════════ */
+.chapter {
+  display: none;
+  padding: 56px 48px 100px;
+  max-width: 720px;
+  animation: reveal 0.35s ease;
+}
+.chapter.active { display: block; }
+
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════
+   TYPOGRAPHY
+═══════════════════════════════════════ */
+.eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 10px;
+  display: block;
+}
+
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 4.5vw, 52px);
+  font-weight: 900;
+  line-height: 1.06;
+  margin-bottom: 18px;
+}
+
+h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(20px, 2.5vw, 26px);
+  font-weight: 700;
+  margin: 44px 0 12px;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+h2::before {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 2px;
+  background: var(--red);
+  flex-shrink: 0;
+  margin-bottom: 2px;
+}
+
+h3 {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin: 26px 0 8px;
+}
+
+p { color: var(--ink2); margin-bottom: 14px; }
+strong { color: var(--ink); }
+em { color: var(--amber); font-style: italic; }
+
+.lead {
+  font-size: 18px;
+  line-height: 1.7;
+  color: var(--ink2);
+  border-left: 3px solid var(--red);
+  padding-left: 18px;
+  margin: 18px 0 28px;
+}
+
+/* ═══════════════════════════════════════
+   CARDS
+═══════════════════════════════════════ */
+.card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 22px;
+  margin: 14px 0;
+  box-shadow: 0 1px 8px var(--shadow);
+}
+.card-warm  { background: var(--warm); }
+.card-ink   { background: var(--ink); color: #d0c8b8; border-color: var(--ink); }
+.card-red   { border-left: 3px solid var(--red); }
+.card-green { border-left: 3px solid var(--green); }
+.card-amber { border-left: 3px solid var(--amber); }
+.card-navy  { border-left: 3px solid var(--navy); }
+
+/* ═══════════════════════════════════════
+   CALLOUT
+═══════════════════════════════════════ */
+.callout {
+  display: flex;
+  gap: 14px;
+  background: var(--warm);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--amber);
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin: 18px 0;
+}
+.callout-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 14px; line-height: 1.65; }
+
+/* ═══════════════════════════════════════
+   ANALOGY GRID
+═══════════════════════════════════════ */
+.analogy-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+.analogy-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 16px;
+  text-align: center;
+  box-shadow: 0 1px 6px var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.analogy-card:hover { transform: translateY(-3px); box-shadow: 0 5px 18px var(--shadow); }
+.analogy-card .icon { font-size: 28px; margin-bottom: 8px; }
+.analogy-card h4 {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 6px;
+}
+.analogy-card p { font-size: 12px; color: var(--muted); margin: 0; line-height: 1.5; }
+
+/* ═══════════════════════════════════════
+   INTERACTIVE DEMO PANE
+═══════════════════════════════════════ */
+.demo {
+  background: #1c1917;
+  border-radius: 14px;
+  padding: 24px;
+  margin: 20px 0;
+  position: relative;
+  overflow: hidden;
+}
+.demo::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 15% 60%, rgba(192,57,43,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 30%, rgba(44,74,124,0.07) 0%, transparent 55%);
+  pointer-events: none;
+}
+.demo-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #4a4540;
+  margin-bottom: 18px;
+}
+
+/* ═══════════════════════════════════════
+   NEURON NODES
+═══════════════════════════════════════ */
+.neuron {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-family: 'DM Mono', monospace;
+  cursor: pointer;
+  transition: all 0.28s;
+  border: 2px solid;
+  line-height: 1.25;
+  position: relative;
+  flex-shrink: 0;
+}
+.n-in  { width:52px;height:52px;font-size:10px;background:rgba(45,106,79,0.15);border-color:#2d6a4f;color:#4caf7a; }
+.n-hid { width:56px;height:56px;font-size:10px;background:rgba(44,74,124,0.15);border-color:#2c4a7c;color:#7aaad8; }
+.n-out { width:62px;height:62px;font-size:11px;background:rgba(192,57,43,0.15);border-color:#c0392b;color:#e06a5a; }
+.n-sig { width:68px;height:68px;font-size:18px;background:rgba(91,61,143,0.12);border-color:#7050b0;color:#a888e8; }
+.neuron:hover { transform: scale(1.12); box-shadow: 0 0 18px currentColor; }
+
+.w-tag {
+  position: absolute; top: -9px; right: -9px;
+  background: var(--amber); color: white;
+  font-family: 'DM Mono', monospace;
+  font-size: 8px; padding: 2px 5px;
+  border-radius: 5px; font-weight: 500;
+  white-space: nowrap; z-index: 2;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+/* ═══════════════════════════════════════
+   INFO BOX (inside demo)
+═══════════════════════════════════════ */
+.demo-info {
+  margin-top: 18px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 13px;
+  color: #8a8070;
+  min-height: 52px;
+  transition: all 0.25s;
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════
+   STEP LIST
+═══════════════════════════════════════ */
+.steps { margin: 20px 0; }
+.step {
+  display: flex;
+  gap: 14px;
+  padding: 14px 0 14px 22px;
+  border-left: 2px solid var(--border);
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.step::before {
+  content: attr(data-n);
+  position: absolute; left: -12px; top: 14px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--cream); border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  color: var(--muted); transition: all 0.2s;
+}
+.step.done { border-left-color: var(--green); }
+.step.done::before { background: var(--green); border-color: var(--green); color: white; content: '✓'; }
+.step.on { border-left-color: var(--red); }
+.step.on::before { background: var(--red); border-color: var(--red); color: white; }
+.step-hd {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--red); margin-bottom: 3px;
+}
+.step-body { font-size: 13px; color: var(--ink2); line-height: 1.55; }
+.step-aside {
+  margin-left: auto; flex-shrink: 0;
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  color: var(--amber); background: rgba(200,125,26,0.08);
+  padding: 2px 8px; border-radius: 5px; height: fit-content; margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════
+   SLIDERS
+═══════════════════════════════════════ */
+.sl-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 52px 80px;
+  gap: 10px; align-items: center; margin: 9px 0;
+}
+.sl-label { font-family: 'DM Mono', monospace; font-size: 11px; color: #4caf7a; }
+.sl-val   { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--amber); }
+.sl-res   { font-family: 'DM Mono', monospace; font-size: 11px; color: #7aaad8; text-align: right; }
+input[type=range] {
+  -webkit-appearance: none; width: 100%; height: 3px;
+  background: #333; border-radius: 2px; outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--amber); cursor: pointer;
+}
+
+.result-bar {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px; padding: 12px 16px;
+  font-family: 'DM Mono', monospace;
+  margin-top: 14px;
+}
+.r-line { font-size: 12px; color: #a09888; margin: 2px 0; }
+.r-main { font-size: 15px; font-weight: 600; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.07); }
+
+/* ═══════════════════════════════════════
+   CANVAS
+═══════════════════════════════════════ */
+canvas {
+  display: block; width: 100%;
+  border-radius: 10px; background: #1c1917;
+  border: 1px solid #2e2920;
+}
+.canvas-wrap { position: relative; margin: 16px 0; }
+.canvas-label {
+  position: absolute; top: 10px; left: 14px;
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: #4a4540; pointer-events: none;
+}
+
+/* ═══════════════════════════════════════
+   ACTIVATION TABS
+═══════════════════════════════════════ */
+.fn-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 14px 0; }
+.fn-tab {
+  padding: 5px 13px; cursor: pointer;
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  color: var(--muted); border: 1px solid var(--border);
+  border-radius: 20px; background: white;
+  transition: all 0.18s;
+}
+.fn-tab:hover, .fn-tab.on {
+  color: var(--red); border-color: var(--red);
+  background: rgba(192,57,43,0.05);
+}
+
+/* ═══════════════════════════════════════
+   POS / NEG SPLIT
+═══════════════════════════════════════ */
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
+.pos-box {
+  background: rgba(45,106,79,0.06);
+  border: 1px solid rgba(45,106,79,0.25);
+  border-radius: 8px; padding: 14px;
+}
+.neg-box {
+  background: rgba(192,57,43,0.06);
+  border: 1px solid rgba(192,57,43,0.25);
+  border-radius: 8px; padding: 14px;
+}
+.pos-box h4 { color: var(--green); font-family:'DM Mono',monospace; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; }
+.neg-box h4 { color: var(--red);   font-family:'DM Mono',monospace; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; }
+.pos-box p, .neg-box p { font-size: 13px; margin: 0; }
+
+/* ═══════════════════════════════════════
+   HEATMAP
+═══════════════════════════════════════ */
+.heatmap { display: flex; flex-direction: column; gap: 3px; margin: 14px 0; }
+.hm-row { display: flex; gap: 3px; }
+.hm-cell {
+  width: 36px; height: 36px; border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  cursor: pointer; transition: transform 0.2s;
+  position: relative; border: 1px solid transparent;
+}
+.hm-cell:hover { transform: scale(1.18); z-index: 3; }
+.hm-tip {
+  display: none; position: absolute; bottom: 110%; left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink); color: var(--cream);
+  padding: 4px 8px; border-radius: 5px;
+  font-size: 9px; white-space: nowrap; z-index: 10;
+}
+.hm-cell:hover .hm-tip { display: block; }
+
+/* ═══════════════════════════════════════
+   RELU DEMO BOXES
+═══════════════════════════════════════ */
+.relu-io { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 18px 0; flex-wrap: wrap; }
+.relu-box {
+  width: 82px; height: 82px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 600;
+  border: 2px solid; transition: all 0.3s;
+}
+
+/* ═══════════════════════════════════════
+   PARAM BARS
+═══════════════════════════════════════ */
+.param-bar { display: flex; align-items: center; gap: 10px; margin: 7px 0; }
+.p-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); min-width: 120px; }
+.bar-track { flex: 1; height: 16px; background: var(--paper); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+.bar-fill { height: 100%; border-radius: 8px; display: flex; align-items: center; padding-left: 7px; font-family: 'DM Mono', monospace; font-size: 9px; color: white; font-weight: 600; min-width: 4px; transition: width 0.7s cubic-bezier(.4,0,.2,1); }
+
+/* ═══════════════════════════════════════
+   FLOW BOXES (LoRA)
+═══════════════════════════════════════ */
+.flow-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 10px 0; }
+.fbox {
+  padding: 9px 14px; border-radius: 9px;
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  text-align: center; min-width: 80px;
+  transition: all 0.25s; cursor: pointer; line-height: 1.45;
+}
+.f-frozen { background: rgba(44,74,124,0.18); border: 2px solid #2c4a7c; color: #7aaad8; }
+.f-train  { background: rgba(200,125,26,0.18); border: 2px solid #c87d1a; color: #c87d1a; }
+.f-io     { background: rgba(45,106,79,0.12); border: 1px solid #2d6a4f; color: #4caf7a; }
+.f-sum    { background: rgba(192,57,43,0.12); border: 1px solid #c0392b; color: #e06a5a; }
+.f-arr    { color: #4a4540; font-size: 18px; }
+
+/* ═══════════════════════════════════════
+   MATRIX VIZ
+═══════════════════════════════════════ */
+.mat-wrap { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center; margin: 18px 0; }
+.mat { display: inline-block; border-left: 3px solid; border-right: 3px solid; padding: 6px 10px; }
+.mat-grid { display: grid; gap: 3px; }
+.mc { width: 28px; height: 28px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 9px; }
+.mc-frozen { background: rgba(44,74,124,0.2); color: #7aaad8; }
+.mc-train  { background: rgba(200,125,26,0.2); color: #c87d1a; }
+
+/* ═══════════════════════════════════════
+   COMPARE TABLE
+═══════════════════════════════════════ */
+.cmp-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+.cmp-table th { background: var(--ink); color: #c8c0b0; padding: 9px 12px; text-align: left; font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; }
+.cmp-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); color: var(--ink2); }
+.cmp-table tr:hover td { background: var(--warm); }
+.yes { color: var(--green); font-weight: 700; }
+.no  { color: var(--red); }
+
+/* ═══════════════════════════════════════
+   CODE BLOCK
+═══════════════════════════════════════ */
+pre {
+  background: #161412; border: 1px solid #2e2920;
+  border-radius: 9px; padding: 16px;
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  line-height: 1.85; overflow-x: auto;
+  color: #c8c0a8; margin: 14px 0;
+}
+.kw  { color: #7aaad8; }
+.nm  { color: #c87d1a; }
+.cm  { color: #4a4540; font-style: italic; }
+.st  { color: #4caf7a; }
+
+/* ═══════════════════════════════════════
+   VARIANT TABS
+═══════════════════════════════════════ */
+#var-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 16px 0; }
+
+/* ═══════════════════════════════════════
+   NEXT CHAPTER CTA
+═══════════════════════════════════════ */
+.cta-row { display: flex; gap: 12px; align-items: center; margin-top: 44px; flex-wrap: wrap; }
+.btn-next {
+  display: inline-block;
+  padding: 11px 28px;
+  background: var(--ink); color: var(--cream);
+  border-radius: 6px; border: none;
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  cursor: pointer; transition: all 0.2s;
+  text-decoration: none; letter-spacing: 0.3px;
+}
+.btn-next:hover { background: var(--red); }
+.btn-ghost {
+  display: inline-block;
+  padding: 11px 28px;
+  background: transparent; color: var(--muted);
+  border-radius: 6px; border: 1px solid var(--border);
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  cursor: pointer; transition: all 0.2s;
+  text-decoration: none;
+}
+.btn-ghost:hover { color: var(--ink); border-color: var(--ink); }
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media (max-width: 700px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .chapter { padding: 36px 20px 80px; }
+  .split { grid-template-columns: 1fr; }
+  .sl-row { grid-template-columns: 70px 1fr 44px; }
+  .sl-res { display: none; }
+}
+
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- ── BREADCRUMB ── -->
+<div class="back-bar">
+  <a href="index.html" class="back-link">← zero2ai</a>
+  <span class="back-sep">/</span>
+  <span class="back-current">Neurons, Weights &amp; Fine-Tuning — Deep Dive</span>
+</div>
+
+<!-- ── LAYOUT ── -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-label">Deep Dive</div>
+
+    <a class="nav-item active" onclick="go('neuron')">
+      <span class="nav-num">01</span>The Neuron
+    </a>
+    <a class="nav-item" onclick="go('weights')">
+      <span class="nav-num">02</span>Weights
+    </a>
+    <a class="nav-item" onclick="go('activation')">
+      <span class="nav-num">03</span>Activation Functions
+    </a>
+    <a class="nav-item" onclick="go('relu')">
+      <span class="nav-num">04</span>ReLU
+    </a>
+    <a class="nav-item" onclick="go('network')">
+      <span class="nav-num">05</span>The Full Network
+    </a>
+    <a class="nav-item" onclick="go('inference')">
+      <span class="nav-num">06</span>Inference
+    </a>
+    <a class="nav-item" onclick="go('finetuning')">
+      <span class="nav-num">07</span>Fine-Tuning Problem
+    </a>
+    <a class="nav-item" onclick="go('lora')">
+      <span class="nav-num">08</span>LoRA
+    </a>
+    <a class="nav-item" onclick="go('variants')">
+      <span class="nav-num">09</span>LoRA Variants
+    </a>
+    <a class="nav-item" onclick="go('compare')">
+      <span class="nav-num">10</span>Compare All
+    </a>
+
+    <div style="border-top:1px solid var(--border);margin:20px 16px 14px;"></div>
+    <div class="sidebar-label">Back to zero2ai</div>
+    <a class="nav-item" href="index.html" style="color:var(--red);">
+      <span class="nav-num">↩</span>Main site
+    </a>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+
+<!-- ══════════════════════════════════════
+  01 · THE NEURON
+══════════════════════════════════════ -->
+<div class="chapter active" id="ch-neuron">
+  <span class="eyebrow">Deep Dive · 01</span>
+  <h1>The Neuron</h1>
+  <p class="lead">A neuron is a tiny calculator. It takes in numbers, multiplies them by weights, adds them up, and passes the result through one simple function. Billions of these, wired together, produce intelligence.</p>
+
+  <h2>Analogy first</h2>
+  <div class="analogy-row">
+    <div class="analogy-card">
+      <div class="icon">🧑‍⚖️</div>
+      <h4>The Judge</h4>
+      <p>Weighs multiple inputs, assigns each an importance, delivers one verdict.</p>
+    </div>
+    <div class="analogy-card">
+      <div class="icon">🎚️</div>
+      <h4>Volume Dial</h4>
+      <p>Each input connection has a dial — the weight. Turn it up, that input matters more.</p>
+    </div>
+    <div class="analogy-card">
+      <div class="icon">🚦</div>
+      <h4>Traffic Light</h4>
+      <p>After summing, the neuron decides: pass this signal on, or stop it here?</p>
+    </div>
+  </div>
+
+  <h2>Three parts — click each one</h2>
+
+  <div class="demo">
+    <div class="demo-tag">Interactive anatomy — click any part</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;">
+
+      <!-- Inputs -->
+      <div style="display:flex;flex-direction:column;gap:9px;align-items:flex-end;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4a4540;text-align:right;margin-bottom:4px;">INPUTS × WEIGHTS</div>
+        <div style="position:relative;"><div class="neuron n-in" onclick="partInfo('inputs')"><span style="font-size:8px">x₁</span><strong>0.8</strong></div><div class="w-tag">w=0.6</div></div>
+        <div style="position:relative;"><div class="neuron n-in" onclick="partInfo('inputs')"><span style="font-size:8px">x₂</span><strong>0.3</strong></div><div class="w-tag">w=−0.4</div></div>
+        <div style="position:relative;"><div class="neuron n-in" onclick="partInfo('inputs')"><span style="font-size:8px">x₃</span><strong>0.5</strong></div><div class="w-tag">w=0.9</div></div>
+      </div>
+
+      <div style="color:#3a3530;font-size:20px;margin:0 4px;">→</div>
+
+      <!-- Sum -->
+      <div style="text-align:center;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4a4540;margin-bottom:8px;">WEIGHTED SUM</div>
+        <div class="neuron n-sig" onclick="partInfo('sum')">Σ</div>
+      </div>
+
+      <div style="color:#3a3530;font-size:20px;margin:0 4px;">→</div>
+
+      <!-- Activation -->
+      <div style="text-align:center;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4a4540;margin-bottom:8px;">ACTIVATION</div>
+        <div class="neuron n-hid" style="border-color:#c0392b;color:#e06a5a;background:rgba(192,57,43,0.12);width:62px;height:62px;" onclick="partInfo('act')">f( )</div>
+      </div>
+
+      <div style="color:#3a3530;font-size:20px;margin:0 4px;">→</div>
+
+      <!-- Output -->
+      <div style="text-align:center;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4a4540;margin-bottom:8px;">OUTPUT</div>
+        <div class="neuron n-out" onclick="partInfo('out')"><span style="font-size:8px">h</span><strong>0.81</strong></div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#4a4540;margin-top:6px;">→ next layer</div>
+      </div>
+    </div>
+    <div id="part-box" class="demo-info">Click any part above to see what it does.</div>
+  </div>
+
+  <h2>Step by step</h2>
+  <p>Click each step to walk through the calculation.</p>
+  <div class="steps" id="neuron-steps">
+    <div class="step" data-n="1" onclick="step(1,'neuron-steps')">
+      <div><div class="step-hd">Receive inputs</div><div class="step-body">x₁=0.8, x₂=0.3, x₃=0.5. Could be pixel values, word vectors, or outputs from the previous layer. Always just numbers.</div></div>
+      <div class="step-aside">x₁ x₂ x₃</div>
+    </div>
+    <div class="step" data-n="2" onclick="step(2,'neuron-steps')">
+      <div><div class="step-hd">Multiply by weights</div><div class="step-body">0.8×0.6 = 0.48 &nbsp;·&nbsp; 0.3×(−0.4) = −0.12 &nbsp;·&nbsp; 0.5×0.9 = 0.45</div></div>
+      <div class="step-aside">× w</div>
+    </div>
+    <div class="step" data-n="3" onclick="step(3,'neuron-steps')">
+      <div><div class="step-hd">Sum everything (Σ)</div><div class="step-body">0.48 + (−0.12) + 0.45 = <strong>0.81</strong>. This is the dot product.</div></div>
+      <div class="step-aside">= 0.81</div>
+    </div>
+    <div class="step" data-n="4" onclick="step(4,'neuron-steps')">
+      <div><div class="step-hd">Apply activation</div><div class="step-body">ReLU(0.81) = max(0, 0.81) = <strong>0.81</strong>. If it were −0.3, ReLU would output 0 — neuron goes silent.</div></div>
+      <div class="step-aside">→ 0.81</div>
+    </div>
+    <div class="step" data-n="5" onclick="step(5,'neuron-steps')">
+      <div><div class="step-hd">Fire to the next layer</div><div class="step-body">0.81 becomes one input to every neuron in the next layer. The chain continues until the final answer emerges.</div></div>
+      <div class="step-aside">→ layer 2</div>
+    </div>
+  </div>
+
+  <div class="cta-row">
+    <button class="btn-next" onclick="go('weights')">Chapter 2: Weights →</button>
+    <a class="btn-ghost" href="index.html">← Back to zero2ai</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+  02 · WEIGHTS
+══════════════════════════════════════ -->
+<div class="chapter" id="ch-weights">
+  <span class="eyebrow">Deep Dive · 02</span>
+  <h1>Weights</h1>
+  <p class="lead">A weight is a single number on a connection between two neurons. It controls how much that input matters. Everything a model has learned — every fact, pattern, preference — is encoded in billions of these numbers.</p>
+
+  <div class="callout">
+    <span class="callout-icon">🏙️</span>
+    <p>If the network is a city, weights are <strong>road widths</strong>. A wide road lets lots of signal through. A zero-width road blocks it. A road running backwards (negative weight) reverses the signal.</p>
+  </div>
+
+  <h2>Three kinds of weight</h2>
+  <div class="split" style="grid-template-columns:1fr 1fr 1fr;">
+    <div class="pos-box">
+      <h4>Positive (+0.9)</h4>
+      <p>Amplifies. If this input grows, the neuron fires more strongly. <em>"love" → boosts positive sentiment.</em></p>
+    </div>
+    <div class="neg-box">
+      <h4>Negative (−0.7)</h4>
+      <p>Suppresses. If this input grows, the output shrinks. <em>"not" → dampens positivity.</em></p>
+    </div>
+    <div class="card" style="margin:0;padding:14px;">
+      <h4 style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Zero (0.0)</h4>
+      <p style="font-size:13px;margin:0;">This connection is severed. Training disconnected it — irrelevant for this task.</p>
+    </div>
+  </div>
+
+  <h2>Live weight explorer</h2>
+  <p>Drag the weights. The sum and ReLU output update instantly.</p>
+
+  <div class="demo">
+    <div class="demo-tag">Weight → Output — drag any slider</div>
+    <div id="w-demo-rows"></div>
+    <div class="result-bar">
+      <div class="r-line" id="w-sum-line">Sum = —</div>
+      <div class="r-main" id="w-relu-line">After ReLU → —</div>
+    </div>
+    <div style="margin-top:10px;font-family:'DM Mono',monospace;font-size:10px;color:#4a4540;">
+      Try: set w_love to −1 &nbsp;·&nbsp; set all to 0 &nbsp;·&nbsp; set all to +1
+    </div>
+  </div>
+
+  <h2>Weights form a matrix</h2>
+  <p>All weights between two layers live in a grid — one cell per connection. <strong>Click any cell</strong> to see what it connects.</p>
+  <div id="heatmap"></div>
+  <div id="hm-info" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--amber);margin-top:6px;min-height:20px;"></div>
+
+  <h2>The scale problem</h2>
+  <div class="card card-warm">
+    <div class="param-bar"><span class="p-label">3×4 toy layer</span><div class="bar-track"><div class="bar-fill" style="width:0.01%;background:var(--green);min-width:20px;">12</div></div></div>
+    <div class="param-bar"><span class="p-label">1024×1024</span><div class="bar-track"><div class="bar-fill" style="width:6%;background:var(--navy);">~1M</div></div></div>
+    <div class="param-bar"><span class="p-label">4096×4096 (LLM)</span><div class="bar-track"><div class="bar-fill" style="width:30%;background:var(--amber);">~16M</div></div></div>
+    <div class="param-bar"><span class="p-label">GPT-4 total</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:linear-gradient(90deg,var(--red),var(--amber));">~1.8T</div></div></div>
+  </div>
+
+  <div class="cta-row">
+    <button class="btn-next" onclick="go('activation')">Chapter 3: Activation →</button>
+    <button class="btn-ghost" onclick="go('neuron')">← Previous</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+  03 · ACTIVATION
+══════════════════════════════════════ -->
+<div class="chapter" id="ch-activation">
+  <span class="eyebrow">Deep Dive · 03</span>
+  <h1>Activation Functions</h1>
+  <p class="lead">One of the least-understood steps in a neural network — and the most important. Without activation functions, a 100-layer network is mathematically identical to a single layer.</p>
+
+  <h2>The collapse problem</h2>
+  <div class="card card-red">
+    <p style="font-family:'DM Mono',monospace;font-size:13px;line-height:2;margin:0;">
+      Layer 2 output = W₂ × (W₁ × input)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span style="color:var(--red);">(W₂ × W₁)</span> × input<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= W_combined × input
+    </p>
+  </div>
+  <div class="callout">
+    <span class="callout-icon">🚨</span>
+    <p>Without activation: no matter how many layers you add, the whole network is just one big multiplication. It can only draw straight lines through data — it cannot learn curves, patterns, or any real-world relationship. <strong>Useless for anything meaningful.</strong></p>
+  </div>
+
+  <div class="split">
+    <div class="analogy-card">
+      <div class="icon">📏</div>
+      <h4>Without Activation</h4>
+      <p>Can only separate data with a straight line — like trying to separate cats from dogs using only a ruler.</p>
+    </div>
+    <div class="analogy-card">
+      <div class="icon">🌊</div>
+      <h4>With Activation</h4>
+      <p>Can learn any curve, spiral, or shape — discovering patterns no straight line could capture.</p>
+    </div>
+  </div>
+
+  <h2>Visualise different functions</h2>
+  <div class="fn-tabs" id="act-tabs">
+    <div class="fn-tab on" onclick="drawAct('relu',this)">ReLU</div>
+    <div class="fn-tab" onclick="drawAct('sigmoid',this)">Sigmoid</div>
+    <div class="fn-tab" onclick="drawAct('tanh',this)">Tanh</div>
+    <div class="fn-tab" onclick="drawAct('gelu',this)">GELU</div>
+    <div class="fn-tab" onclick="drawAct('leaky',this)">Leaky ReLU</div>
+  </div>
+  <div class="canvas-wrap">
+    <canvas id="act-canvas" height="280"></canvas>
+    <div class="canvas-label" id="act-title">ReLU</div>
+  </div>
+  <div id="act-desc" class="card card-warm"></div>
+
+  <h2>Same input, five functions</h2>
+  <p>Drag the slider. Watch how each function responds differently to the same number.</p>
+  <div class="card">
+    <div class="sl-row" style="grid-template-columns:50px 1fr 48px;">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);">z =</span>
+      <input type="range" min="-4" max="4" step="0.1" value="1.5" id="act-z" oninput="updateActOutputs()">
+      <span id="act-z-val" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--amber);">1.5</span>
+    </div>
+    <div id="act-out-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:14px;"></div>
+  </div>
+
+  <div class="cta-row">
+    <button class="btn-next" onclick="go('relu')">Chapter 4: ReLU Deep Dive →</button>
+    <button class="btn-ghost" onclick="go('weights')">← Previous</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+  04 · RELU
+══════════════════════════════════════ -->
+<div class="chapter" id="ch-relu">
+  <span class="eyebrow">Deep Dive · 04</span>
+  <h1>ReLU</h1>
+  <p class="lead">Rectified Linear Unit. Three characters. The most influential activation function in the history of deep learning — and genuinely the simplest idea.</p>
+
+  <h2>The complete formula</h2>
+  <div class="card card-ink" style="text-align:center;padding:36px;">
+    <div style="font-family:'Playfair Display',serif;font-size:clamp(30px,5vw,52px);color:#f0e8d8;font-weight:900;">
+      ReLU(x) = max(0, x)
+    </div>
+    <p style="color:#6a6050;margin-top:14px;margin-bottom:0;font-size:15px;">Positive → keep it. &nbsp; Negative → zero.</p>
+  </div>
+
+  <div class="split">
+    <div class="pos-box">
+      <h4>Positive input</h4>
+      <p style="font-family:'DM Mono',monospace;">ReLU(0.81) = <strong>0.81</strong><br>ReLU(3.2)  = <strong>3.2</strong><br>ReLU(0.001)= <strong>0.001</strong></p>
+      <p style="margin-top:10px;font-size:12px;">Passes through unchanged.</p>
+    </div>
+    <div class="neg-box">
+      <h4>Negative input</h4>
+      <p style="font-family:'DM Mono',monospace;">ReLU(−0.5) = <strong>0</strong><br>ReLU(−9.3) = <strong>0</strong><br>ReLU(−0.001)=<strong>0</strong></p>
+      <p style="margin-top:10px;font-size:12px;">Killed. The neuron goes silent.</p>
+    </div>
+  </div>
+
+  <h2>Try it live</h2>
+  <div class="card card-warm">
+    <div class="sl-row" style="grid-template-columns:50px 1fr 48px;">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);">x =</span>
+      <input type="range" min="-3" max="3" step="0.1" value="1.0" id="relu-x" oninput="updateRelu()">
+      <span id="relu-xv" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--amber);">1.0</span>
+    </div>
+    <div class="relu-io">
+      <div style="text-align:center;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:7px;">INPUT x</div>
+        <div id="relu-in" class="relu-box"></div>
+      </div>
+      <div style="font-size:13px;color:var(--muted);font-family:'DM Mono',monospace;">max(0, x)</div>
+      <div style="text-align:center;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:7px;">OUTPUT</div>
+        <div id="relu-out" class="relu-box"></div>
+      </div>
+    </div>
+    <div id="relu-msg" style="text-align:center;font-family:'DM Mono',monospace;font-size:13px;padding:8px;border-radius:6px;transition:all 0.3s;"></div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="relu-canvas" height="260"></canvas>
+    <div class="canvas-label">ReLU(x) = max(0, x)</div>
+  </div>
+
+  <h2>Why ReLU won</h2>
+  <div class="card card-green" style="margin-bottom:10px;">
+    <h3 style="margin-top:0;color:var(--green);">⚡ Speed</h3>
+    <p style="margin:0;">max(0, x) is a single CPU instruction. Sigmoid requires computing eˣ. With billions of neurons and millions of training steps, that difference is enormous.</p>
+  </div>
+  <div class="card card-amber" style="margin-bottom:10px;">
+    <h3 style="margin-top:0;color:var(--amber);">🔀 Sparsity</h3>
+    <p style="margin:0;">About half the neurons output zero at any moment. This <em>sparse activation</em> is efficient — neurons specialise rather than all doing the same thing.</p>
+  </div>
+  <div class="card card-navy" style="margin-bottom:10px;">
+    <h3 style="margin-top:0;color:var(--navy);">📈 Gradient flow</h3>
+    <p style="margin:0;">For positive values, the gradient is exactly 1 — it doesn't shrink. Sigmoid's gradient collapsed to near-zero deep in networks, making training fail. ReLU solved this and made deep learning possible.</p>
+  </div>
+  <div class="callout">
+    <span class="callout-icon">💀</span>
+    <p><strong>The Dying ReLU problem:</strong> A neuron always receiving negative input outputs 0 forever — its weights never get a gradient. It "dies." Leaky ReLU fixes this: negatives become 0.01x instead of 0, keeping a tiny gradient trickle alive.</p>
+  </div>
+
+  <div class="cta-row">
+    <button class="btn-next" onclick="go('network')">Chapter 5: The Full Network →</button>
+    <button class="btn-ghost" onclick="go('activation')">← Previous</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+  05 · THE NETWORK
+══════════════════════════════════════ -->
+<div class="chapter" id="ch-network">
+  <span class="eyebrow">Deep Dive · 05</span>
+  <h1>The Full Network</h1>
+  <p class="lead">A neural network is layers of neurons. Each layer's outputs feed into the next layer's inputs. Information flows forward. Error signals flow backward. Learning happens through repetition.</p>
+
+  <h2>Credit risk — a real example</h2>
+  <p>Let's trace "loan overdue — 90 days" through a 3-layer network. Click any neuron.</p>
+
+  <div class="demo" id="net-demo">
+    <div class="demo-tag">3-layer network — click any neuron</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:8px;color:#4a4540;text-align:center;margin-bottom:8px;">INPUT</div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <div class="neuron n-in" onclick="netInfo('loan')" style="font-size:8px;width:50px;height:50px;">loan<br><strong>1.0</strong></div>
+          <div class="neuron n-in" onclick="netInfo('overdue')" style="font-size:8px;width:50px;height:50px;">overdue<br><strong>0.9</strong></div>
+          <div class="neuron n-in" onclick="netInfo('amount')" style="font-size:8px;width:50px;height:50px;">amount<br><strong>0.6</strong></div>
+        </div>
+      </div>
+      <div style="color:#3a3530;font-size:16px;">→</div>
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:8px;color:#4a4540;text-align:center;margin-bottom:8px;">HIDDEN 1 + ReLU</div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <div class="neuron n-hid" onclick="netInfo('risk')" style="font-size:8px;width:50px;height:50px;">risk<br><strong>0.87</strong></div>
+          <div class="neuron n-hid" onclick="netInfo('sev')" style="font-size:8px;width:50px;height:50px;">sev.<br><strong>0.74</strong></div>
+          <div class="neuron n-hid" onclick="netInfo('dead')" style="font-size:8px;width:50px;height:50px;opacity:0.35;">hist<br><strong>0.0</strong></div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--red);text-align:center;margin-top:5px;">3rd neuron dead</div>
+      </div>
+      <div style="color:#3a3530;font-size:16px;">→</div>
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:8px;color:#4a4540;text-align:center;margin-bottom:8px;">HIDDEN 2 + ReLU</div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <div class="neuron n-hid" onclick="netInfo('high')" style="font-size:8px;width:50px;height:50px;">high<br><strong>0.91</strong></div>
+          <div class="neuron n-hid" onclick="netInfo('low')" style="font-size:8px;width:50px;height:50px;opacity:0.35;">low<br><strong>0.0</strong></div>
+        </div>
+      </div>
+      <div style="color:#3a3530;font-size:16px;">→</div>
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:8px;color:#4a4540;text-align:center;margin-bottom:8px;">OUTPUT</div>
+        <div class="neuron n-out" onclick="netInfo('output')" style="width:64px;height:64px;font-size:9px;">HIGH<br>RISK<br><strong>91%</strong></div>
+      </div>
+    </div>
+    <div id="net-info" class="demo-info">Click any neuron to see what it detects.</div>
+  </div>
+
+  <h2>What training does</h2>
+<pre><span class="cm"># Before training: all weights random</span>
+weights = [<span class="nm">0.1</span>, <span class="nm">-0.3</span>, <span class="nm">0.7</span>, ...]  <span class="cm"># 70 billion of these</span>
+
+<span class="cm"># Model predicts LOW RISK for a 90-day overdue loan</span>
+prediction = <span class="nm">0.12</span>  <span class="cm"># wrong. should be ~0.9</span>
+error = <span class="nm">0.9</span> - <span class="nm">0.12</span>  <span class="cm"># = 0.78 too low</span>
+
+<span class="cm"># Backpropagation: push error signal backwards</span>
+<span class="kw">for</span> w <span class="kw">in</span> weights:
+    w += learning_rate * gradient  <span class="cm"># tiny nudge</span>
+
+<span class="cm"># Repeat billions of times → weights encode "risky"</span></pre>
+
+  <div class="cta-row">
+    <button class="btn-next" onclick="go('inference')">Chapter 6: Inference →</button>
+    <button class="btn-ghost" onclick="go('relu')">← Previous</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+  06 · INFERENCE
+══════════════════════════════════════ -->
+<div class="chapter" id="ch-inference">
+  <span class="eyebrow">Deep Dive · 06</span>
+  <h1>Inference</h1>
+  <p class="lead">Training is finished. Weights are frozen. You type a prompt — the model runs one forward pass per token, using those frozen weights to calculate what comes next.</p>
+
+  <h2>A prompt, token by token</h2>
+  <div class="demo">
+    <div class="demo-tag">Click a token to trace it through the model</div>
+    <div style="margin-bottom:14px;font-family:'DM Mono',monospace;font-size:12px;color:#666;">Prompt: <span style="color:#4caf7a;">"The BNPL repayment is overdue"</span></div>
+    <div id="tok-row" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;"></div>
+    <div id="tok-flow" style="display:none;">
+      <div class="flow-row" id="tok-boxes"></div>
+    </div>
+  </div>
+
+  <h2>Weights shape every output</h2>
+  <p>Change these word-weights. The sentiment score updates instantly.</p>
+  <div class="card">
+    <div class="sl-row">
+      <span class="sl-label">w_love</span>
+      <input type="range" min="-1" max="1" step="0.05" value="0.8" id="iw1" oninput="updateInf()">
+      <span id="iv1" class="sl-val">0.80</span>
+      <span id="ic1" class="sl-res">+0.64</span>
+    </div>
+    <div class="sl-row">
+      <span class="sl-label" style="color:var(--red);">w_hate</span>
+      <input type="range" min="-1" max="1" step="0.05" value="-0.7" id="iw2" oninput="updateInf()">
+      <span id="iv2" class="sl-val">−0.70</span>
+      <span id="ic2" class="sl-res">−0.28</span>
+    </div>
+    <div class="sl-row">
+      <span class="sl-label" style="color:#7aaad8;">w_good</span>
+      <input type="range" min="-1" max="1" step="0.05" value="0.6" id="iw3" oninput="updateInf()">
+      <span id="iv3" class="sl-val">0.60</span>
+      <span id="ic3" class="sl-res">+0.36</span>
+    </div>
+    <div style="background:var(--warm);border:1px solid var(--border);border-radius:7px;padding:12px 14px;margin-top:12px;font-family:'DM Mono',monospace;font-size:13px;" id="inf-out">
+      Sentiment: <span id="inf-score">+0.72</span> → <span id="inf-label">😊 Positive</span>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin:10px 0 0;">Set w_love to −1. The model "forgets" that love is positive.</p>
+  </div>
+
+  <h2>Next-token probabilities</h2>
+  <p>After "The BNPL repayment is", the model scores every word in its 50,000-word vocabulary. Top 5:</p>
+  <div class="card card-warm" id="tok-probs"></div>
+
+  <div class="cta-row">
+    <button class="btn-next" onclick="go('finetuning')">Chapter 7: The Fine-Tuning Problem →</button>
+    <button class="btn-ghost" onclick="go('network')">← Previous</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+  07 · FINE-TUNING PROBLEM
+══════════════════════════════════════ -->
+<div class="chapter" id="ch-finetuning">
+  <span class="eyebrow">Deep Dive · 07</span>
+  <h1>The Fine-Tuning Problem</h1>
+  <p class="lead">A model trained on the internet knows everything and specialises in nothing. To make it great at BNPL compliance, medical notes, or legal drafting, you need to fine-tune it. The problem is the cost.</p>
+
+  <h2>Full fine-tuning — brute force</h2>
+  <div class="card card-warm">
+    <div class="param-bar"><span class="p-label">Llama 3 8B</span><div class="bar-track"><div class="bar-fill" style="width:8%;background:var(--navy);">8B</div></div></div>
+    <div class="param-bar"><span class="p-label">Llama 3 70B</span><div class="bar-track"><div class="bar-fill" style="width:30%;background:var(--amber);">70B</div></div></div>
+    <div class="param-bar"><span class="p-label">GPT-4 (~1.8T)</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:linear-gradient(90deg,var(--red),var(--amber));">~1.8T</div></div></div>
+  </div>
+  <div class="callout">
+    <span class="callout-icon">💸</span>
+    <p>Llama 70B at 2 bytes/weight = 140GB just to store weights. Add gradient memory (another 140GB) and optimiser states (×2) = <strong>~600GB GPU RAM</strong>. An A100 80GB GPU costs ~$15,000. You'd need 8 of them. For one fine-tuning run.</p>
+  </div>
+
+  <h2>The insight that changed everything</h2>
+  <div class="callout">
+    <span class="callout-icon">🔬</span>
+    <p>When you fine-tune a model, <strong>most weights barely move</strong>. The useful update ΔW lives in a tiny mathematical subspace — it is <em>low rank</em>. You don't need to update all 70 billion weights. You just need to approximate the update.</p>
+  </div>
+
+  <h2>What "low rank" means</h2>
+  <p>A 4×4 matrix update needs 16 numbers. But if the update has a pattern — a structure — you can describe it with far fewer numbers using two small matrices multiplied together.</p>
+
+  <div id="lowrank-viz" class="mat-wrap"></div>
+
+  <div class="callout">
+    <span class="callout-icon">💡</span>
+    <p>16 numbers → approximated by 4+4 = <strong>8 numbers</strong>. That's rank 1. In real LoRA with d=4096, r=8: 16 million → 65,000. A <strong>250× reduction</strong> in parameters to train.</p>
+  </div>
+
+  <div class="cta-row">
+    <button class="btn-next" onclick="go('lora')">Chapter 8: LoRA →</button>
+    <button class="btn-ghost" onclick="go('inference')">← Previous</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+  08 · LORA
+══════════════════════════════════════ -->
+<div class="chapter" id="ch-lora">
+  <span class="eyebrow">Deep Dive · 08</span>
+  <h1>LoRA</h1>
+  <p class="lead">Low-Rank Adaptation. Instead of updating the giant weight matrix W, you freeze it completely and learn two tiny matrices A and B. Their product approximates the update. W never changes.</p>
+
+  <h2>The architecture — click any box</h2>
+  <div class="demo">
+    <div class="demo-tag">LoRA forward pass</div>
+    <div style="text-align:center;margin-bottom:14px;">
+      <div class="fbox f-io" style="display:inline-block;">x ∈ ℝᵈ<br><span style="font-size:9px;">input</span></div>
+    </div>
+    <div style="display:flex;justify-content:center;gap:40px;flex-wrap:wrap;margin-bottom:14px;">
+      <div style="text-align:center;">
+        <div style="color:#3a3530;font-size:16px;margin-bottom:7px;">↓</div>
+        <div class="fbox f-frozen" onclick="loraInfo('W')">W ∈ ℝᵈˣᵈ<br><span style="font-size:9px;">Pretrained — FROZEN</span></div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:#4a4540;margin-top:5px;">Wx</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="color:#3a3530;font-size:16px;margin-bottom:7px;">↓</div>
+        <div class="fbox f-train" onclick="loraInfo('A')" style="margin-bottom:8px;">A ∈ ℝᵈˣʳ<br><span style="font-size:9px;">squeezes d→r</span></div>
+        <div style="color:#666;font-size:14px;">↓</div>
+        <div class="fbox f-train" onclick="loraInfo('B')" style="margin-top:8px;">B ∈ ℝʳˣᵈ<br><span style="font-size:9px;">expands r→d</span></div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:#4a4540;margin-top:5px;">BAx</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-bottom:8px;">
+      <div class="fbox f-sum" onclick="loraInfo('add')" style="display:inline-block;">Wx + BAx<br><span style="font-size:9px;">both paths added</span></div>
+    </div>
+    <div style="text-align:center;">
+      <div style="color:#3a3530;font-size:16px;margin:6px 0;"></div>
+      <div class="fbox f-io" style="display:inline-block;">h ∈ ℝᵈ<br><span style="font-size:9px;">output</span></div>
+    </div>
+    <div id="lora-info-box" class="demo-info">Click W, A, B, or the sum box to understand each part.</div>
+  </div>
+
+  <h2>Rank — the key trade-off</h2>
+  <div class="card">
+    <div class="sl-row" style="grid-template-columns:50px 1fr 36px;">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);">r =</span>
+      <input type="range" min="1" max="64" step="1" value="8" id="rank-r" oninput="updateRank()">
+      <span id="rank-v" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--amber);">8</span>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:12px;margin:12px 0;" id="rank-stats"></div>
+    <div class="bar-track" style="height:18px;"><div class="bar-fill" id="rank-bar" style="background:var(--red);height:100%;"></div></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:5px;font-family:'DM Mono',monospace;">LoRA params as % of full W (d=4096)</div>
+  </div>
+
+  <h2>Why B starts at zero</h2>
+  <div class="card card-red">
+    <p style="font-family:'DM Mono',monospace;font-size:13px;line-height:2;margin:0;">
+      A → random Gaussian &nbsp; B → all zeros<br>
+      ∴ B×A = 0 at step 0<br><br>
+      LoRA starts behaving exactly like the base model.<br>
+      No personality shift — it diverges gradually as B learns.
+    </p>
+  </div>
+
+  <div class="cta-row">
+    <button class="btn-next" onclick="go('variants')">Chapter 9: LoRA Variants →</button>
+    <button class="btn-ghost" onclick="go('finetuning')">← Previous</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+  09 · VARIANTS
+══════════════════════════════════════ -->
+<div class="chapter" id="ch-variants">
+  <span class="eyebrow">Deep Dive · 09</span>
+  <h1>LoRA Variants</h1>
+  <p class="lead">Researchers kept asking the same question: can we push this further? Each variant squeezes more efficiency out of the low-rank idea, trading something different each time.</p>
+
+  <div id="var-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin:16px 0;"></div>
+  <div id="var-panel"></div>
+
+  <div class="cta-row">
+    <button class="btn-next" onclick="go('compare')">Chapter 10: Compare All →</button>
+    <button class="btn-ghost" onclick="go('lora')">← Previous</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+  10 · COMPARE
+══════════════════════════════════════ -->
+<div class="chapter" id="ch-compare">
+  <span class="eyebrow">Deep Dive · 10</span>
+  <h1>Compare All Techniques</h1>
+
+  <h2>Parameter efficiency</h2>
+  <div class="card card-warm">
+    <div class="param-bar"><span class="p-label">Full Fine-Tune</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--red);">100%</div></div></div>
+    <div class="param-bar"><span class="p-label">Delta-LoRA</span><div class="bar-track"><div class="bar-fill" style="width:1.4%;background:var(--amber);min-width:28px;">1.4%</div></div></div>
+    <div class="param-bar"><span class="p-label">LoRA (r=8)</span><div class="bar-track"><div class="bar-fill" style="width:0.8%;background:var(--navy);min-width:24px;">0.8%</div></div></div>
+    <div class="param-bar"><span class="p-label">LoRA+ (r=8)</span><div class="bar-track"><div class="bar-fill" style="width:0.8%;background:#7050b0;min-width:24px;">0.8%</div></div></div>
+    <div class="param-bar"><span class="p-label">LoRA-FA</span><div class="bar-track"><div class="bar-fill" style="width:0.4%;background:var(--green);min-width:20px;">0.4%</div></div></div>
+    <div class="param-bar"><span class="p-label">VeRA</span><div class="bar-track"><div class="bar-fill" style="width:0.05%;background:#888;min-width:14px;"></div></div><span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);">0.05%</span></div>
+  </div>
+
+  <h2>Full comparison</h2>
+  <table class="cmp-table">
+    <thead>
+      <tr><th>Technique</th><th>Trained</th><th>W updated?</th><th>Key idea</th><th>Best for</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>LoRA</strong></td><td>A+B per layer</td><td><span class="no">✗</span></td><td>Low-rank side path</td><td>General purpose</td></tr>
+      <tr><td><strong>LoRA-FA</strong></td><td>B only per layer</td><td><span class="no">✗</span></td><td>Freeze A, save memory</td><td>Memory constrained</td></tr>
+      <tr><td><strong>VeRA</strong></td><td>2 vectors per layer</td><td><span class="no">✗</span></td><td>Share A,B globally</td><td>Extreme efficiency</td></tr>
+      <tr><td><strong>Delta-LoRA</strong></td><td>A+B+W</td><td><span class="yes">✓</span></td><td>Feed delta into W</td><td>Complex tasks</td></tr>
+      <tr><td><strong>LoRA+</strong></td><td>A+B per layer</td><td><span class="no">✗</span></td><td>B learns faster</td><td>Free upgrade</td></tr>
+    </tbody>
+  </table>
+
+  <h2>One-line mental models</h2>
+  <div style="display:grid;gap:8px;">
+    <div class="card card-red" style="margin:0;font-size:14px;"><strong>LoRA</strong> — Small shortcut alongside the frozen highway</div>
+    <div class="card card-navy" style="margin:0;font-size:14px;"><strong>LoRA-FA</strong> — Same shortcut, but half is nailed down from day one</div>
+    <div class="card card-green" style="margin:0;font-size:14px;"><strong>VeRA</strong> — One shortcut shared by all layers; each just gets a volume knob</div>
+    <div class="card card-amber" style="margin:0;font-size:14px;"><strong>Delta-LoRA</strong> — Shortcut gradually rewrites the highway itself</div>
+    <div class="card" style="margin:0;font-size:14px;border-left:3px solid #7050b0;"><strong>LoRA+</strong> — Same shortcut, but the second matrix gets a turbo boost</div>
+  </div>
+
+  <div class="callout" style="margin-top:28px;">
+    <span class="callout-icon">🏦</span>
+    <p>For BNPL/compliance domain adaptation: <strong>LoRA+ on a 7–8B model</strong> is the practical starting point — cheap, reversible, swappable per use case.</p>
+  </div>
+
+  <div class="cta-row">
+    <a class="btn-next" href="index.html">← Back to zero2ai</a>
+    <button class="btn-ghost" onclick="go('variants')">← Previous</button>
+  </div>
+</div>
+
+  </main>
+</div><!-- /layout -->
+
+<script>
+/* ══════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════ */
+const chapters = ['neuron','weights','activation','relu','network','inference','finetuning','lora','variants','compare'];
+
+function go(id) {
+  chapters.forEach(c => {
+    document.getElementById('ch-'+c)?.classList.remove('active');
+  });
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('ch-'+id)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if(n.textContent.trim().toLowerCase().includes(id.substring(0,4))) n.classList.add('active');
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+
+  // lazy init
+  if(id==='weights')   { initWeightDemo(); initHeatmap(); }
+  if(id==='activation'){ setTimeout(()=>drawAct('relu',document.querySelector('.fn-tab.on')),40); updateActOutputs(); }
+  if(id==='relu')      { setTimeout(()=>{ drawReluCanvas(); updateRelu(); },40); }
+  if(id==='inference') { initTokenRow(); initTokenProbs(); updateInf(); }
+  if(id==='finetuning'){ initLowRank(); }
+  if(id==='lora')      { updateRank(); }
+  if(id==='variants')  { initVarTabs(); }
+}
+
+// scroll progress
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  document.getElementById('progress-bar').style.width =
+    (window.scrollY / (d.scrollHeight - d.clientHeight) * 100) + '%';
+});
+
+window.addEventListener('resize', () => {
+  const active = document.querySelector('.chapter.active')?.id;
+  if(active === 'ch-activation') drawAct(currentActFn, null);
+  if(active === 'ch-relu') drawReluCanvas();
+});
+
+/* ══════════════════════════════════════
+   CH01 — NEURON
+══════════════════════════════════════ */
+const partData = {
+  inputs: `<strong style="color:#c87d1a;">Inputs x₁, x₂, x₃</strong> — The signals arriving at the neuron. Here x₁=0.8, x₂=0.3, x₃=0.5. Could be pixel values, word embeddings, or outputs from the previous layer. Always just numbers.`,
+  sum:    `<strong style="color:#c87d1a;">Σ — Weighted Sum</strong> — Each input is multiplied by its weight, then all products are added: (0.8×0.6) + (0.3×−0.4) + (0.5×0.9) = 0.48 − 0.12 + 0.45 = <strong>0.81</strong>. This is the dot product.`,
+  act:    `<strong style="color:#c87d1a;">f( ) — Activation Function</strong> — The sum passes through a non-linear function. Without this step, stacking layers is mathematically useless — the whole network collapses to one linear operation. Activation gives the network the ability to learn curves and patterns.`,
+  out:    `<strong style="color:#c87d1a;">Output h</strong> — The number leaving this neuron (here: 0.81). It becomes one input to every neuron in the next layer. The chain continues until the final prediction emerges from the output layer.`
+};
+function partInfo(k) {
+  document.getElementById('part-box').innerHTML = partData[k];
+}
+
+function step(n, containerId) {
+  const steps = document.querySelectorAll(`#${containerId} .step`);
+  steps.forEach((el, i) => {
+    el.classList.remove('done', 'on');
+    if (i + 1 < n) el.classList.add('done');
+    if (i + 1 === n) el.classList.add('on');
+  });
+}
+
+/* ══════════════════════════════════════
+   CH02 — WEIGHTS
+══════════════════════════════════════ */
+const wInputVals = [0.8, 0.3, 0.5];
+const wLbls      = ['love', 'hate', 'good'];
+const wDef       = [0.6, -0.4, 0.9];
+
+function initWeightDemo() {
+  const el = document.getElementById('w-demo-rows');
+  if (!el || el.children.length) { recalcW(); return; }
+  wLbls.forEach((lb, i) => {
+    el.innerHTML += `<div class="sl-row">
+      <span class="sl-label">${lb}=${wInputVals[i]}</span>
+      <input type="range" min="-1" max="1" step="0.05" value="${wDef[i]}" id="ww${i}" oninput="recalcW()">
+      <span class="sl-val" id="wv${i}">${wDef[i].toFixed(2)}</span>
+      <span class="sl-res" id="wc${i}"></span>
+    </div>`;
+  });
+  recalcW();
+}
+
+function recalcW() {
+  const ws = wLbls.map((_, i) => parseFloat(document.getElementById('ww'+i)?.value ?? wDef[i]));
+  const cs = wInputVals.map((x, i) => x * ws[i]);
+  const sum = cs.reduce((a,b) => a+b, 0);
+  const relu = Math.max(0, sum);
+  ws.forEach((w, i) => {
+    const ve = document.getElementById('wv'+i); if(ve) ve.textContent = (w>=0?'':'')+w.toFixed(2);
+    const ce = document.getElementById('wc'+i); if(ce) ce.textContent = (cs[i]>=0?'+':'')+cs[i].toFixed(2);
+  });
+  const sl = document.getElementById('w-sum-line');
+  if(sl) sl.innerHTML = `Sum = ${cs.map((c,i)=>(i?' + ':'')+(c>=0?'+':'')+c.toFixed(2)).join('')} = <span style="color:#7aaad8;">${sum.toFixed(2)}</span>`;
+  const rl = document.getElementById('w-relu-line');
+  if(rl) {
+    const col = sum >= 0 ? '#4caf7a' : '#e06a5a';
+    rl.innerHTML = `After ReLU → <span style="color:${col};">${relu.toFixed(2)}</span>${sum < 0 ? ' <span style="color:#4a4540;font-size:11px;">(negative → killed)</span>' : ''}`;
+  }
+}
+
+function initHeatmap() {
+  const box = document.getElementById('heatmap');
+  if (!box || box.children.length) return;
+  const R=4, C=5;
+  const vals = Array.from({length:R*C}, () => (Math.random()*2-1).toFixed(2));
+  const hm = document.createElement('div'); hm.className = 'heatmap';
+  for(let r=0; r<R; r++){
+    const row = document.createElement('div'); row.className = 'hm-row';
+    for(let c=0; c<C; c++){
+      const v = parseFloat(vals[r*C+c]);
+      const cell = document.createElement('div'); cell.className = 'hm-cell';
+      const int = Math.abs(v);
+      cell.style.background = v>=0 ? `rgba(45,106,79,${0.07+int*0.44})` : `rgba(192,57,43,${0.07+int*0.44})`;
+      cell.style.color = v>=0 ? '#2d6a4f' : '#c0392b';
+      cell.style.borderColor = v>=0 ? 'rgba(45,106,79,0.25)' : 'rgba(192,57,43,0.25)';
+      cell.innerHTML = `${v}<div class="hm-tip">w[${r+1}][${c+1}]=${v} ${v>=0?'↑ amplifies':'↓ suppresses'}</div>`;
+      cell.onclick = () => {
+        document.getElementById('hm-info').textContent =
+          `w[${r+1}][${c+1}] = ${v} → connection from input neuron ${r+1} to output neuron ${c+1}. ${v>=0?'Positive: amplifies signal.':'Negative: suppresses signal.'}`;
+      };
+      row.appendChild(cell);
+    }
+    hm.appendChild(row);
+  }
+  box.appendChild(hm);
+}
+
+/* ══════════════════════════════════════
+   CH03 — ACTIVATION
+══════════════════════════════════════ */
+let currentActFn = 'relu';
+const actFns = {
+  relu:    x => Math.max(0, x),
+  sigmoid: x => 1/(1+Math.exp(-x)),
+  tanh:    x => Math.tanh(x),
+  gelu:    x => x*0.5*(1+Math.tanh(Math.sqrt(2/Math.PI)*(x+0.044715*x**3))),
+  leaky:   x => x>=0 ? x : 0.01*x
+};
+const actMeta = {
+  relu:    { name:'ReLU', text:'<code style="background:var(--paper);padding:2px 5px;border-radius:3px;font-family:\'DM Mono\',monospace;">max(0, x)</code> — Positive: pass through. Negative: zero. Used in most CNNs. Fast, simple, sparse.' },
+  sigmoid: { name:'Sigmoid', text:'<code style="background:var(--paper);padding:2px 5px;border-radius:3px;font-family:\'DM Mono\',monospace;">1/(1+e⁻ˣ)</code> — Squishes to (0,1). Classic but gradients vanish for large |x|, making deep nets hard to train.' },
+  tanh:    { name:'Tanh', text:'<code style="background:var(--paper);padding:2px 5px;border-radius:3px;font-family:\'DM Mono\',monospace;">(eˣ−e⁻ˣ)/(eˣ+e⁻ˣ)</code> — Zero-centred (−1,+1). Better than sigmoid for deep nets, still has vanishing gradient issues.' },
+  gelu:    { name:'GELU', text:'<code style="background:var(--paper);padding:2px 5px;border-radius:3px;font-family:\'DM Mono\',monospace;">x·Φ(x)</code> — Smooth ReLU. Used in GPT-2, GPT-3, BERT. Slight negative for small negatives. State of the art for NLP.' },
+  leaky:   { name:'Leaky ReLU', text:'<code style="background:var(--paper);padding:2px 5px;border-radius:3px;font-family:\'DM Mono\',monospace;">x>0 ? x : 0.01x</code> — Fixes dying ReLU. Neurons with negative input still get a tiny gradient and can recover.' }
+};
+
+function drawAct(fn, tab) {
+  currentActFn = fn;
+  document.querySelectorAll('#act-tabs .fn-tab').forEach(t => t.classList.remove('on'));
+  if(tab) tab.classList.add('on');
+  const canvas = document.getElementById('act-canvas'); if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = canvas.offsetWidth; const H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#1c1917'; ctx.fillRect(0,0,W,H);
+
+  const ox = W/2, oy = H/2, sx = Math.min(65, W/9), sy = 50;
+
+  ctx.strokeStyle = '#252018'; ctx.lineWidth = 1;
+  for(let i=-6;i<=6;i++){
+    ctx.beginPath(); ctx.moveTo(ox+i*sx,0); ctx.lineTo(ox+i*sx,H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,oy+i*sy); ctx.lineTo(W,oy+i*sy); ctx.stroke();
+  }
+  ctx.strokeStyle = '#3a3020'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0,oy); ctx.lineTo(W,oy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox,0); ctx.lineTo(ox,H); ctx.stroke();
+
+  ctx.fillStyle = '#3a3020'; ctx.font = '10px DM Mono,monospace';
+  for(let i=-4;i<=4;i++){
+    if(!i) continue;
+    ctx.fillText(i, ox+i*sx-4, oy+13);
+    if(i>0) ctx.fillText(i, ox+5, oy-i*sy+4);
+  }
+
+  const f = actFns[fn];
+  ctx.beginPath(); ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 2.5;
+  let first = true;
+  for(let px=0; px<W; px++){
+    const x = (px-ox)/sx; const y = f(x); const py = oy - y*sy;
+    if(py < -8 || py > H+8){ first=true; continue; }
+    if(first){ ctx.moveTo(px,py); first=false; } else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+
+  const m = actMeta[fn];
+  document.getElementById('act-title').textContent = m.name;
+  document.getElementById('act-desc').innerHTML = `<p style="margin:0;font-size:14px;">${m.text}</p>`;
+}
+
+function updateActOutputs() {
+  const z = parseFloat(document.getElementById('act-z')?.value ?? 1.5);
+  const el = document.getElementById('act-z-val'); if(el) el.textContent = z.toFixed(1);
+  const colors = ['#c0392b','#2c4a7c','#2d6a4f','#c87d1a','#7050b0'];
+  const grid = document.getElementById('act-out-grid'); if(!grid) return;
+  grid.innerHTML = Object.entries(actFns).map(([nm,f],i) => {
+    const v = f(z).toFixed(3);
+    const pos = parseFloat(v) >= 0;
+    return `<div style="border:1px solid ${colors[i]}33;border-radius:7px;padding:9px;text-align:center;background:${colors[i]}0a;">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:${colors[i]};margin-bottom:4px;text-transform:uppercase;">${nm}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:17px;font-weight:600;color:${pos?'var(--green)':'var(--red)'};">${v}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════
+   CH04 — RELU
+══════════════════════════════════════ */
+function drawReluCanvas() {
+  const canvas = document.getElementById('relu-canvas'); if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = canvas.offsetWidth; const H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#1c1917'; ctx.fillRect(0,0,W,H);
+
+  const ox = W/2, oy = H/2, sx = Math.min(72, W/8), sy = 50;
+
+  ctx.fillStyle = 'rgba(192,57,43,0.04)'; ctx.fillRect(0,0,ox,H);
+  ctx.fillStyle = 'rgba(45,106,79,0.04)'; ctx.fillRect(ox,0,W-ox,H);
+
+  ctx.strokeStyle = '#252018'; ctx.lineWidth = 1;
+  for(let i=-5;i<=5;i++){
+    ctx.beginPath(); ctx.moveTo(ox+i*sx,0); ctx.lineTo(ox+i*sx,H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,oy+i*sy); ctx.lineTo(W,oy+i*sy); ctx.stroke();
+  }
+  ctx.strokeStyle = '#3a3020'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0,oy); ctx.lineTo(W,oy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox,0); ctx.lineTo(ox,H); ctx.stroke();
+
+  ctx.fillStyle = 'rgba(192,57,43,0.35)'; ctx.font = '10px DM Mono,monospace';
+  ctx.fillText('DEAD ZONE', 10, 20);
+  ctx.fillStyle = 'rgba(45,106,79,0.45)';
+  ctx.fillText('PASS THROUGH', ox+8, 20);
+
+  ctx.beginPath(); ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 3.5;
+  ctx.moveTo(0,oy); ctx.lineTo(ox,oy); ctx.lineTo(W, oy-(W-ox)/sx*sy); ctx.stroke();
+
+  ctx.fillStyle = '#3a3020'; ctx.font = '10px DM Mono,monospace';
+  for(let i=-3;i<=3;i++){
+    if(!i) continue;
+    ctx.fillText(i, ox+i*sx-4, oy+13);
+    if(i>0) ctx.fillText(i, ox+5, oy-i*sy+4);
+  }
+}
+
+function updateRelu() {
+  const x = parseFloat(document.getElementById('relu-x')?.value ?? 1);
+  const ev = document.getElementById('relu-xv'); if(ev) ev.textContent = x.toFixed(1);
+  const out = Math.max(0, x);
+  const ib = document.getElementById('relu-in'); const ob = document.getElementById('relu-out'); const msg = document.getElementById('relu-msg');
+  if(!ib||!ob||!msg) return;
+  ib.textContent = x.toFixed(1);
+  ob.textContent = out.toFixed(1);
+  if(x >= 0){
+    ib.style.cssText = `background:rgba(45,106,79,0.1);border-color:#2d6a4f;color:#2d6a4f;width:82px;height:82px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:20px;font-weight:600;border:2px solid;transition:all 0.3s;`;
+    ob.style.cssText = ib.style.cssText;
+    msg.textContent = '✅ Positive — passes through unchanged'; msg.style.color = 'var(--green)'; msg.style.background = 'rgba(45,106,79,0.06)';
+  } else {
+    ib.style.cssText = `background:rgba(192,57,43,0.1);border-color:#c0392b;color:#c0392b;width:82px;height:82px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:20px;font-weight:600;border:2px solid;transition:all 0.3s;`;
+    ob.style.cssText = `background:rgba(44,74,124,0.1);border-color:#2c4a7c;color:#2c4a7c;width:82px;height:82px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:20px;font-weight:600;border:2px solid;transition:all 0.3s;`;
+    msg.textContent = '🚫 Negative — killed to 0'; msg.style.color = 'var(--red)'; msg.style.background = 'rgba(192,57,43,0.04)';
+  }
+}
+
+/* ══════════════════════════════════════
+   CH05 — NETWORK
+══════════════════════════════════════ */
+const netInfoData = {
+  loan:   'Input: "loan" feature — value 1.0, maximally active. Signals "yes, there is a loan."',
+  overdue:'Input: "overdue" feature — value 0.9, strongly activated. Repayment is late.',
+  amount: 'Input: "amount" feature — value 0.6, moderately activated, encoding loan size.',
+  risk:   'Hidden neuron detecting general risk level. After weighted sum + ReLU: 0.87.',
+  sev:    'Hidden neuron detecting severity of the overdue signal. ReLU output: 0.74.',
+  dead:   '⚠️ Dead neuron — received negative weighted sum. ReLU killed it to 0. It contributes nothing. This is the "dying ReLU" phenomenon.',
+  high:   'Hidden neuron encoding "high risk" classification. Strongly activated at 0.91.',
+  low:    'Hidden neuron encoding "low risk". Received negative input — ReLU killed it to 0.',
+  output: '🔴 OUTPUT: HIGH RISK at 91% — 3 layers of weighted sums and ReLU activations produced this score. The loan would be flagged for review.'
+};
+function netInfo(k) {
+  const el = document.getElementById('net-info'); if(el) el.innerHTML = `<strong style="color:var(--amber);">${k}:</strong> ${netInfoData[k]}`;
+}
+
+/* ══════════════════════════════════════
+   CH06 — INFERENCE
+══════════════════════════════════════ */
+function initTokenRow() {
+  const el = document.getElementById('tok-row'); if(!el||el.children.length) return;
+  ['The','BNPL','repayment','is','overdue'].forEach(t => {
+    const b = document.createElement('button');
+    b.style.cssText='background:rgba(44,74,124,0.1);border:1px solid #2c4a7c;color:#7aaad8;padding:7px 13px;border-radius:5px;font-family:"DM Mono",monospace;font-size:12px;cursor:pointer;transition:all 0.2s;';
+    b.textContent = t;
+    b.onmouseover = () => b.style.background='rgba(44,74,124,0.22)';
+    b.onmouseout  = () => b.style.background='rgba(44,74,124,0.1)';
+    b.onclick = () => flowToken(t);
+    el.appendChild(b);
+  });
+}
+function flowToken(t) {
+  const box = document.getElementById('tok-flow'); const fl = document.getElementById('tok-boxes');
+  if(!box||!fl) return; box.style.display='block';
+  fl.innerHTML = `
+    <div class="fbox f-io" style="font-size:9px;">"${t}"<br>#${Math.floor(Math.random()*50000)}</div>
+    <div class="f-arr">→</div>
+    <div class="fbox f-frozen" style="font-size:9px;">Embed<br>4096d</div>
+    <div class="f-arr">→</div>
+    <div class="fbox f-frozen" style="font-size:9px;">Attn<br>Q,K,V</div>
+    <div class="f-arr">→</div>
+    <div class="fbox f-frozen" style="font-size:9px;">FFN<br>×W</div>
+    <div class="f-arr">→</div>
+    <div class="fbox f-train" style="font-size:9px;">Logits</div>`;
+}
+function updateInf() {
+  const w1=parseFloat(document.getElementById('iw1')?.value??0.8);
+  const w2=parseFloat(document.getElementById('iw2')?.value??-0.7);
+  const w3=parseFloat(document.getElementById('iw3')?.value??0.6);
+  const c1=w1*0.8, c2=w2*0.4, c3=w3*0.6, sc=c1+c2+c3;
+  [['iv1',w1],['iv2',w2],['iv3',w3]].forEach(([id,v])=>{ const e=document.getElementById(id); if(e) e.textContent=(v>=0?'':'')+v.toFixed(2); });
+  [['ic1',c1],['ic2',c2],['ic3',c3]].forEach(([id,c])=>{ const e=document.getElementById(id); if(e) e.textContent=(c>=0?'+':'')+c.toFixed(2); });
+  const esc=document.getElementById('inf-score'); if(esc) esc.textContent=(sc>=0?'+':'')+sc.toFixed(2);
+  const elb=document.getElementById('inf-label'); if(elb){ elb.textContent=sc>0.3?'😊 Positive':sc<-0.3?'😢 Negative':'😐 Neutral'; elb.style.color=sc>0.3?'var(--green)':sc<-0.3?'var(--red)':'var(--amber)'; }
+}
+function initTokenProbs() {
+  const el = document.getElementById('tok-probs'); if(!el||el.children.length) return;
+  [['due',42],['overdue',21],['scheduled',18],['late',12],['complete',7]].forEach(([t,p])=>{
+    el.innerHTML += `<div style="display:flex;align-items:center;gap:10px;margin:5px 0;">
+      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);min-width:80px;">${t}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${p>30?'var(--navy)':'var(--border)'};">&nbsp;</div></div>
+      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--amber);min-width:30px;">${p}%</span>
+    </div>`;
+  });
+}
+
+/* ══════════════════════════════════════
+   CH07 — FINETUNING
+══════════════════════════════════════ */
+function initLowRank() {
+  const el = document.getElementById('lowrank-viz'); if(!el||el.children.length) return;
+  const bV=[0.5,-0.3,0.8,-0.6], aV=[0.4,0.7,-0.2,0.9];
+  const mc = (v,cls) => `<div class="mc ${cls}" style="opacity:${0.35+Math.abs(v)*0.82};">${v.toFixed(1)}</div>`;
+  el.innerHTML = `
+    <div><div style="font-family:'DM Mono',monospace;font-size:8px;color:#7aaad8;text-align:center;margin-bottom:5px;">ΔW (4×4=16 nums)</div>
+      <div class="mat" style="border-color:#2c4a7c;"><div class="mat-grid" style="grid-template-columns:repeat(4,1fr);">${bV.map(b=>aV.map(a=>mc(b*a,'mc-frozen')).join('')).join('')}</div></div></div>
+    <div style="font-family:'Playfair Display',serif;font-size:26px;color:var(--muted);">=</div>
+    <div><div style="font-family:'DM Mono',monospace;font-size:8px;color:#c87d1a;text-align:center;margin-bottom:5px;">B (4×1=4 nums)</div>
+      <div class="mat" style="border-color:#c87d1a;"><div class="mat-grid" style="grid-template-columns:repeat(1,1fr);">${bV.map(v=>mc(v,'mc-train')).join('')}</div></div></div>
+    <div style="font-family:'Playfair Display',serif;font-size:26px;color:var(--muted);">×</div>
+    <div><div style="font-family:'DM Mono',monospace;font-size:8px;color:#c87d1a;text-align:center;margin-bottom:5px;">A (1×4=4 nums)</div>
+      <div class="mat" style="border-color:#c87d1a;"><div class="mat-grid" style="grid-template-columns:repeat(4,1fr);">${aV.map(v=>mc(v,'mc-train')).join('')}</div></div></div>`;
+}
+
+/* ══════════════════════════════════════
+   CH08 — LORA
+══════════════════════════════════════ */
+const loraInfoData = {
+  W:   `<strong style="color:#c87d1a;">W ∈ ℝᵈˣᵈ — Pretrained weights (FROZEN)</strong><br>The original giant matrix. In a 4096-dim layer: 4096×4096 = 16M weights. Encodes everything the model learned during pretraining. LoRA never touches this.`,
+  A:   `<strong style="color:#c87d1a;">A ∈ ℝᵈˣʳ — Down-projection (TRAINABLE)</strong><br>Compresses d=4096 dimensions down to r=8. With r=8: 4096×8 = 32,768 weights — tiny compared to W's 16M. Initialised with random Gaussian values.`,
+  B:   `<strong style="color:#c87d1a;">B ∈ ℝʳˣᵈ — Up-projection (TRAINABLE)</strong><br>Expands back from r=8 to d=4096. Initialised at <strong>zero</strong> — so B×A=0 at step 0. The model starts behaving exactly like the base model, then gradually diverges as B learns.`,
+  add: `<strong style="color:#c87d1a;">Wx + BAx — Combined output</strong><br>Both paths add together. Frozen W provides existing knowledge. LoRA path BAx adds the fine-tuned specialisation. Together they produce a richer output than either alone.`
+};
+function loraInfo(k) {
+  const el = document.getElementById('lora-info-box'); if(el) el.innerHTML = loraInfoData[k];
+}
+function updateRank() {
+  const r = parseInt(document.getElementById('rank-r')?.value ?? 8);
+  const d = 4096, params = 2*d*r, full = d*d, pct = (params/full*100);
+  const ev = document.getElementById('rank-v'); if(ev) ev.textContent = r;
+  const st = document.getElementById('rank-stats');
+  if(st) st.innerHTML = `LoRA: <span style="color:var(--amber);">${(params/1000).toFixed(0)}K</span> &nbsp;·&nbsp; Full W: <span style="color:var(--red);">${(full/1e6).toFixed(1)}M</span> &nbsp;·&nbsp; Ratio: <span style="color:var(--green);">${pct.toFixed(2)}%</span>`;
+  const bar = document.getElementById('rank-bar'); if(bar) bar.style.width = Math.min(pct*7,100)+'%';
+}
+
+/* ══════════════════════════════════════
+   CH09 — VARIANTS
+══════════════════════════════════════ */
+const varData = {
+  fa: {
+    label: 'LoRA-FA',
+    html: `<h2>LoRA-FA: Freeze A</h2>
+<p>Matrix A acts as a random projector — mathematically, random projections preserve structure. So why train A? Freeze it after initialisation, only train B.</p>
+<div class="demo" style="padding:18px;">
+  <div class="demo-tag">LoRA-FA architecture</div>
+  <div class="flow-row">
+    <div class="fbox f-io">x</div><div class="f-arr">→</div>
+    <div style="display:flex;flex-direction:column;gap:7px;align-items:center;">
+      <div class="fbox f-frozen">W (frozen)</div>
+      <div style="display:flex;gap:7px;align-items:center;">
+        <div class="fbox f-frozen" style="opacity:0.65;">A (frozen 🔒)</div><div class="f-arr">→</div>
+        <div class="fbox f-train">B (trainable ✏️)</div>
+      </div>
+    </div>
+    <div class="f-arr">→</div><div class="fbox f-sum">Wx + BAx</div>
+  </div>
+</div>
+<div class="callout"><span class="callout-icon">💾</span><p><strong>Key benefit:</strong> No need to store activations for A during backprop. Halves activation memory. Quality near-identical to LoRA. Good when VRAM is tight.</p></div>
+<div class="card card-warm"><p style="font-family:'DM Mono',monospace;font-size:12px;margin:0;">LoRA: A(d×r) + B(r×d) = 2dr<br>LoRA-FA: B(r×d) only = <span style="color:var(--green);">dr &nbsp;(half!)</span></p></div>`
+  },
+  vera: {
+    label: 'VeRA',
+    html: `<h2>VeRA: Shared Matrices</h2>
+<p>If frozen random projections work for one layer, why not share A and B globally across all layers? Each layer only gets two tiny scaling vectors.</p>
+<div class="demo" style="padding:18px;">
+  <div class="demo-tag">One shared A,B — each layer has its own volume knob</div>
+  ${['1','2','N'].map(n=>`<div class="flow-row" style="margin:5px 0;">
+    <div class="fbox f-frozen" style="font-size:9px;">W${n} (frozen)</div><div class="f-arr">+</div>
+    <div class="fbox f-frozen" style="font-size:9px;">shared B</div><div class="f-arr">×</div>
+    <div class="fbox f-frozen" style="font-size:9px;">shared A</div><div class="f-arr">×</div>
+    <div class="fbox f-train" style="font-size:9px;">d${n}, b${n} ✏️</div>
+  </div>`).join('')}
+</div>
+<div class="callout"><span class="callout-icon">🎚️</span><p>Analogy: one universal translator shared by all layers. Each layer has its own <strong>volume knob</strong> (two tiny vectors b and d) to scale the shared signal differently.</p></div>
+<div class="card card-warm"><p style="font-family:'DM Mono',monospace;font-size:12px;margin:0;">LoRA/layer: ~65K params (d=4096, r=8)<br>VeRA/layer: <span style="color:var(--green);">~8K params</span> — just two vectors<br><br>Tradeoff: less expressive; shared basis may not suit all layers</p></div>`
+  },
+  delta: {
+    label: 'Delta-LoRA',
+    html: `<h2>Delta-LoRA: Feed Back to W</h2>
+<p>LoRA's update is always rank r — complex tasks can hit this ceiling. Delta-LoRA lets W evolve too, absorbing the delta of the LoRA update each step.</p>
+<div class="demo" style="padding:18px;">
+  <div class="demo-tag">Delta-LoRA update rule</div>
+  <div style="text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:#c87d1a;margin-bottom:14px;">delta = B_(t+1)A_(t+1) − B_t A_t</div>
+  <div class="flow-row">
+    <div class="fbox f-frozen">W_t</div><div class="f-arr">+</div>
+    <div class="fbox f-sum">c × delta</div><div class="f-arr">=</div>
+    <div class="fbox f-frozen">W_(t+1)</div>
+  </div>
+  <div style="text-align:center;font-family:'DM Mono',monospace;font-size:9px;color:#4a4540;margin-top:10px;">c = absorption rate hyperparameter</div>
+</div>
+<div class="callout"><span class="callout-icon">📝</span><p>Analogy: LoRA is post-it notes on a whiteboard. Delta-LoRA copies what the post-its discovered and <strong>writes it on the whiteboard itself</strong> — gradually, step by step. W gains full-rank expressivity over time.</p></div>`
+  },
+  plus: {
+    label: 'LoRA+',
+    html: `<h2>LoRA+: Asymmetric Learning Rates</h2>
+<p>Identical to LoRA except one number: matrix B learns faster than matrix A.</p>
+<div class="demo" style="padding:18px;">
+  <div class="demo-tag">Update rules compared</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <div><div style="font-family:'DM Mono',monospace;font-size:9px;color:#4a4540;margin-bottom:7px;text-align:center;">LORA</div>
+      <div class="card" style="margin:0;padding:12px;">
+        <p style="font-family:'DM Mono',monospace;font-size:11px;text-align:center;margin:0;line-height:2;">A ← A − α·∂J/∂A<br><span style="color:var(--muted);font-size:9px;">rate: α</span><br>B ← B − α·∂J/∂B<br><span style="color:var(--muted);font-size:9px;">rate: α (same)</span></p>
+      </div>
+    </div>
+    <div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--green);margin-bottom:7px;text-align:center;">LORA+</div>
+      <div class="card card-green" style="margin:0;padding:12px;">
+        <p style="font-family:'DM Mono',monospace;font-size:11px;text-align:center;margin:0;line-height:2;">A ← A − α·∂J/∂A<br><span style="color:var(--muted);font-size:9px;">rate: α</span><br>B ← B − <span style="color:var(--green);">λ</span>α·∂J/∂B<br><span style="color:var(--green);font-size:9px;">rate: λα (λ≈4–16)</span></p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="callout"><span class="callout-icon">🏃</span><p>B starts at zero — it's behind from day one. Giving it a higher learning rate lets it catch up to A's head start. Zero extra parameters. Zero extra memory. Consistently outperforms vanilla LoRA on benchmarks.</p></div>`
+  }
+};
+
+function initVarTabs() {
+  const tabs = document.getElementById('var-tabs');
+  if(!tabs||tabs.children.length) return;
+  Object.entries(varData).forEach(([key,v], i) => {
+    const b = document.createElement('button');
+    b.className = 'fn-tab' + (i===0?' on':'');
+    b.textContent = v.label;
+    b.onclick = () => { document.querySelectorAll('#var-tabs button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); showVar(key); };
+    tabs.appendChild(b);
+  });
+  showVar('fa');
+}
+function showVar(key) {
+  const el = document.getElementById('var-panel'); if(el) el.innerHTML = varData[key].html;
+}
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+window.addEventListener('load', () => {
+  updateRelu();
+  initTokenProbs();
+  updateInf();
+});
+</script>
+
+</body>
+</html>
